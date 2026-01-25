@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChemEFlow | Global Engineering Analysis Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        
+        :root { 
+            --primary: #00d1b2; 
+            --dark: #1a202c; 
+            --light: #f7fafc; 
+            --accent: #2d3748;
+            --success: #48bb78;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--light); 
+            color: var(--dark);
+            margin: 0;
+            padding: 40px 20px; 
+        }
+
+        .container { max-width: 700px; margin: auto; }
+
+        .calc-card { 
+            background: white; 
+            padding: 35px; 
+            border-radius: 20px; 
+            border-top: 6px solid var(--primary);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .logo-container { margin-bottom: 20px; }
+        h1 { font-weight: 800; font-size: 28px; margin-bottom: 5px; color: var(--dark); }
+        .subtitle { font-size: 14px; color: #718096; margin-bottom: 25px; }
+
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: left; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #4a5568; }
+        input { 
+            width: 100%; padding: 12px; border: 2px solid #edf2f7; border-radius: 10px; 
+            box-sizing: border-box; font-size: 16px; transition: 0.2s;
+        }
+        input:focus { border-color: var(--primary); outline: none; background: #fff; }
+
+        .btn-stack { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        button { 
+            width: 100%; padding: 16px; border: none; border-radius: 12px; 
+            font-weight: 800; cursor: pointer; font-size: 14px; transition: 0.3s;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .calc-btn { background: var(--primary); color: white; }
+        .pdf-btn { background: var(--accent); color: white; display: none; }
+
+        #result-box { 
+            margin-top: 25px; padding: 20px; border-radius: 12px; 
+            display: none; border-left: 5px solid; text-align: left;
+        }
+
+        .recommendation {
+            margin-top: 20px; padding: 20px; background: #f0fff4; border: 1px dashed var(--success);
+            border-radius: 12px; display: none; text-align: left;
+        }
+
+        .buy-link {
+            display: inline-block; margin-top: 15px; color: var(--success);
+            font-weight: 700; text-decoration: none; font-size: 13px;
+            border: 2px solid var(--success); padding: 8px 15px; border-radius: 8px;
+            transition: 0.3s;
+        }
+        .buy-link:hover { background: var(--success); color: white; }
+
+        .reference-section {
+            margin-top: 40px; padding: 20px; background: #fff; border-radius: 15px;
+            text-align: left; font-size: 13px; color: #4a5568; border: 1px solid #edf2f7;
+        }
+
+        .formula-box {
+            background: #f8fafc; padding: 10px; border-radius: 8px; font-family: serif;
+            font-style: italic; font-size: 18px; text-align: center; margin: 10px 0;
+        }
+
+        .laminar { background: #ebf8ff; color: #2b6cb0; border-color: #2b6cb0; }
+        .turbulent { background: #fff5f5; color: #c53030; border-color: #c53030; }
+        .transitional { background: #fffaf0; color: #c05621; border-color: #c05621; }
+
+        @media (max-width: 600px) { .input-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="calc-card">
+        <div class="logo-container">
+            <img src="logo.png" alt="ChemEFlow Logo" style="width: 100px; margin-bottom: 10px;">
+        </div>
+
+        <h1>ChemEFlow Analysis</h1>
+        <p class="subtitle">Global Standard Fluid Mechanic Engine</p>
+        
+        <div class="input-grid">
+            <div class="input-group">
+                <label>Density (ρ) [kg/m³]</label>
+                <input type="number" id="rho" value="1000">
+            </div>
+            <div class="input-group">
+                <label>Velocity (v) [m/s]</label>
+                <input type="number" id="velocity" placeholder="e.g. 1.5">
+            </div>
+            <div class="input-group">
+                <label>Diameter (D) [m]</label>
+                <input type="number" id="diameter" placeholder="e.g. 0.05">
+            </div>
+            <div class="input-group">
+                <label>Viscosity (μ) [Pa·s]</label>
+                <input type="number" id="mu" value="0.001">
+            </div>
+        </div>
+
+        <div class="btn-stack">
+            <button class="calc-btn" onclick="runAnalysis()">Run Global Analysis</button>
+            <button id="downloadBtn" class="pdf-btn" onclick="generatePDF()">Export Technical Report (PDF)</button>
+        </div>
+
+        <div id="result-box"></div>
+
+        <div id="material-box" class="recommendation">
+            <h4 style="margin:0 0 10px 0">🛠️ Engineering Recommendation</h4>
+            <p id="material-text" style="font-size: 14px; margin:0;"></p>
+            <a href="#" target="_blank" class="buy-link">CHECK INDUSTRIAL SPECS →</a>
+        </div>
+    </div>
+
+    <div class="reference-section">
+        <h3 style="margin-top:0">Technical Reference</h3>
+        <p>Flow regime is determined by the <strong>Reynolds Number (Re)</strong>:</p>
+        <div class="formula-box">Re = (ρ × v × D) / μ</div>
+        <ul style="padding-left: 20px;">
+            <li><strong>Laminar Flow (Re < 2300):</strong> Stable and predictable.</li>
+            <li><strong>Transitional Flow (2300 - 4000):</strong> Mixed behavior.</li>
+            <li><strong>Turbulent Flow (Re > 4000):</strong> High energy, chaotic eddies.</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    function runAnalysis() {
+        const rho = parseFloat(document.getElementById('rho').value);
+        const v = parseFloat(document.getElementById('velocity').value);
+        const D = parseFloat(document.getElementById('diameter').value);
+        const mu = parseFloat(document.getElementById('mu').value);
+
+        if (!v || !D) {
+            alert("Input Error: Flow velocity and diameter are required.");
+            return;
+        }
+
+        const Re = (rho * v * D) / mu;
+        const resultDiv = document.getElementById('result-box');
+        const pdfBtn = document.getElementById('downloadBtn');
+        const materialDiv = document.getElementById('material-box');
+        const materialText = document.getElementById('material-text');
+        const buyLink = document.querySelector('.buy-link');
+        
+        resultDiv.style.display = 'block';
+        pdfBtn.style.display = 'block';
+        materialDiv.style.display = 'block';
+        
+        let type = "";
+        let suggestion = "";
+        let buyUrl = ""; 
+
+        if (Re < 2300) {
+            type = "LAMINAR";
+            resultDiv.className = "laminar";
+            suggestion = "Laminar conditions detected. Standard PVC is acceptable for these low-stress conditions.";
+            buyUrl = "https://www.amazon.in/s?k=industrial+pvc+pipe"; 
+        } else if (Re > 4000) {
+            type = "TURBULENT";
+            resultDiv.className = "turbulent";
+            suggestion = "Turbulent flow active. High erosive potential. Recommend SS316 Steel for durability.";
+            buyUrl = "https://www.amazon.in/s?k=stainless+steel+industrial+pipe"; 
+        } else {
+            type = "TRANSITIONAL";
+            resultDiv.className = "transitional";
+            suggestion = "Unstable flow. Ensure robust support systems and consider Galvanized Iron (GI) pipes.";
+            buyUrl = "https://www.amazon.in/s?k=galvanized+iron+pipe"; 
+        }
+
+        resultDiv.innerHTML = `<strong>Calculated Re: ${Math.round(Re)}</strong><br>Classification: ${type} FLOW`;
+        materialText.innerHTML = suggestion;
+        buyLink.href = buyUrl; 
+    }
+
+    async function generatePDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        const rho = document.getElementById('rho').value;
+        const v = document.getElementById('velocity').value;
+        const D = document.getElementById('diameter').value;
+        const mu = document.getElementById('mu').value;
+        const resultText = document.getElementById('result-box').innerText;
+        const materialText = document.getElementById('material-text').innerText;
+
+        doc.setFillColor(0, 209, 178); 
+        doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.text("ChemEFlow Global Technical Report", 20, 25);
+        
+        doc.setTextColor(40, 40, 40);
+        doc.setFontSize(10);
+        doc.text(`Reference: GLOBAL-ANALYSIS-${Math.floor(Math.random() * 999999)}`, 20, 50);
+        doc.text(`Timestamp: ${new Date().toUTCString()}`, 20, 56);
+
+        doc.setFontSize(14);
+        doc.text("1. Governing Equation: Reynolds Number (Re)", 20, 75);
+        doc.setFontSize(11);
+        doc.text("Re = (Density * Velocity * Diameter) / Viscosity", 25, 85);
+
+        doc.setFontSize(14);
+        doc.text("2. System Parameters", 20, 105);
+        doc.setFontSize(11);
+        doc.text(`- Density: ${rho} kg/m3`, 25, 115);
+        doc.text(`- Velocity: ${v} m/s`, 25, 125);
+        doc.text(`- Diameter: ${D} m`, 25, 135);
+        doc.text(`- Viscosity: ${mu} Pa.s`, 25, 145);
+
+        doc.setFontSize(14);
+        doc.text("3. Result Summary", 20, 165);
+        doc.setFontSize(12);
+        doc.setTextColor(0, 120, 200);
+        doc.text(resultText.replace("\n", " | "), 25, 175);
+
+        doc.setTextColor(40, 40, 40);
+        doc.setFontSize(14);
+        doc.text("4. Global Material Recommendation", 20, 195);
+        doc.setFontSize(11);
+        const splitText = doc.splitTextToSize(materialText, 170);
+        doc.text(splitText, 25, 205);
+
+        doc.setFontSize(8);
+        doc.setTextColor(180);
+        doc.text("Calculations based on standard fluid mechanics models. Verify with a licensed professional.", 20, 285);
+
+        doc.save("ChemEFlow_Global_Report.pdf");
+    }
+</script>
+
+</body>
+</html>
