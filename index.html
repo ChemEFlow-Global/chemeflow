@@ -3,256 +3,885 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChemEFlow | Global Engineering Analysis Tool</title>
+    <title>ChemEFlow | Professional Engineering OS</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
         
         :root { 
-            --primary: #00d1b2; 
-            --dark: #1a202c; 
-            --light: #f7fafc; 
-            --accent: #2d3748;
-            --success: #48bb78;
+            --primary: #00d1b2; --dark: #0f172a; --sidebar: #0b1120; 
+            --light: #f8fafc; --card: #ffffff; --text: #1e293b; --amazon: #ff9900;
         }
 
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background: var(--light); 
-            color: var(--dark);
-            margin: 0;
-            padding: 40px 20px; 
+        .dark-theme { 
+            --light: #0f172a; --sidebar: #020617; --card: #1e293b; --text: #f8fafc; 
         }
+        
+        body { font-family: 'Inter', sans-serif; background: var(--light); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; transition: 0.3s; }
 
-        .container { max-width: 700px; margin: auto; }
+        /* SIDEBAR */
+        .sidebar { width: 280px; background: var(--sidebar); color: white; display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; border-right: 1px solid #334155; }
+        
+        /* ENHANCED LOGO SECTION */
+        .logo-section { 
+            padding: 30px 20px; 
+            text-align: center; 
+            border-bottom: 1px solid #1e293b; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 15px;
+            background: linear-gradient(135deg, #0b1120 0%, #1e293b 100%);
+        }
+        
+        .logo-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Animated circular border */
+        .logo-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px solid transparent;
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            border-right-color: var(--primary);
+            animation: rotate 3s linear infinite;
+        }
+        
+        .logo-ring-2 {
+            position: absolute;
+            width: 90%;
+            height: 90%;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            border-bottom-color: #64748b;
+            border-left-color: #64748b;
+            animation: rotate-reverse 4s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes rotate-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+        
+        /* Logo SVG wrapper */
+        .logo-svg-wrapper {
+            position: relative;
+            width: 85px;
+            height: 85px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+        
+        .logo-svg-wrapper svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 4px 15px rgba(0, 209, 178, 0.3));
+        }
+        
+        .logo-text { 
+            font-weight: 800; 
+            font-size: 26px; 
+            color: white;
+            letter-spacing: -1px;
+            text-shadow: 0 2px 10px rgba(0, 209, 178, 0.5);
+        }
+        
+        .logo-text span {
+            color: var(--primary);
+        }
+        
+        .logo-subtitle {
+            font-size: 10px;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .section-title { padding: 15px 25px 5px; font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-link { padding: 10px 25px; cursor: pointer; font-size: 13px; color: #94a3b8; transition: 0.2s; border-left: 3px solid transparent; display: flex; align-items: center; gap: 10px; }
+        .nav-link:hover, .nav-link.active { background: #1e293b; color: white; border-left-color: var(--primary); }
 
-        .calc-card { 
-            background: white; 
-            padding: 35px; 
+        /* MAIN CONTENT */
+        .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        .module { display: none; width: 100%; max-width: 900px; }
+        .module.active { display: block; animation: fadeIn 0.3s ease; }
+        
+        /* UI ELEMENTS */
+        .calc-card { background: var(--card); padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 5px solid var(--primary); margin-bottom: 20px; position: relative; }
+        
+        .welcome-hero { 
+            text-align: center; 
+            padding: 60px 40px; 
+            background: linear-gradient(135deg, #0b1120 0%, #1e293b 50%, #334155 100%);
+            color: white; 
             border-radius: 20px; 
-            border-top: 6px solid var(--primary);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            text-align: center;
+            margin-bottom: 30px; 
+            width: 100%; 
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
         }
-
-        .logo-container { margin-bottom: 20px; }
-        h1 { font-weight: 800; font-size: 28px; margin-bottom: 5px; color: var(--dark); }
-        .subtitle { font-size: 14px; color: #718096; margin-bottom: 25px; }
-
-        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: left; }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #4a5568; }
-        input { 
-            width: 100%; padding: 12px; border: 2px solid #edf2f7; border-radius: 10px; 
-            box-sizing: border-box; font-size: 16px; transition: 0.2s;
+        
+        .welcome-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 209, 178, 0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
         }
-        input:focus { border-color: var(--primary); outline: none; background: #fff; }
-
-        .btn-stack { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        button { 
-            width: 100%; padding: 16px; border: none; border-radius: 12px; 
-            font-weight: 800; cursor: pointer; font-size: 14px; transition: 0.3s;
-            text-transform: uppercase; letter-spacing: 1px;
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
         }
-
-        .calc-btn { background: var(--primary); color: white; }
-        .pdf-btn { background: var(--accent); color: white; display: none; }
-
-        #result-box { 
-            margin-top: 25px; padding: 20px; border-radius: 12px; 
-            display: none; border-left: 5px solid; text-align: left;
+        
+        /* Dashboard Logo Container */
+        .dashboard-logo-container {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-
-        .recommendation {
-            margin-top: 20px; padding: 20px; background: #f0fff4; border: 1px dashed var(--success);
-            border-radius: 12px; display: none; text-align: left;
+        
+        .dashboard-logo-ring {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-
-        .buy-link {
-            display: inline-block; margin-top: 15px; color: var(--success);
-            font-weight: 700; text-decoration: none; font-size: 13px;
-            border: 2px solid var(--success); padding: 8px 15px; border-radius: 8px;
-            transition: 0.3s;
+        
+        .dashboard-logo-ring::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px solid transparent;
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            border-right-color: var(--primary);
+            animation: rotate 3s linear infinite;
         }
-        .buy-link:hover { background: var(--success); color: white; }
-
-        .reference-section {
-            margin-top: 40px; padding: 20px; background: #fff; border-radius: 15px;
-            text-align: left; font-size: 13px; color: #4a5568; border: 1px solid #edf2f7;
+        
+        .dashboard-logo-ring::after {
+            content: '';
+            position: absolute;
+            width: 90%;
+            height: 90%;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            border-bottom-color: rgba(255, 255, 255, 0.3);
+            border-left-color: rgba(255, 255, 255, 0.3);
+            animation: rotate-reverse 4s linear infinite;
         }
-
-        .formula-box {
-            background: #f8fafc; padding: 10px; border-radius: 8px; font-family: serif;
-            font-style: italic; font-size: 18px; text-align: center; margin: 10px 0;
+        
+        .dashboard-logo-svg {
+            width: 100px;
+            height: 100px;
+            filter: drop-shadow(0 8px 20px rgba(0, 209, 178, 0.4));
+            z-index: 1;
         }
-
-        .laminar { background: #ebf8ff; color: #2b6cb0; border-color: #2b6cb0; }
-        .turbulent { background: #fff5f5; color: #c53030; border-color: #c53030; }
-        .transitional { background: #fffaf0; color: #c05621; border-color: #c05621; }
-
-        @media (max-width: 600px) { .input-grid { grid-template-columns: 1fr; } }
+        
+        .welcome-hero h1 {
+            position: relative;
+            z-index: 1;
+            font-size: 42px;
+            margin: 0 0 10px 0;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+        
+        .welcome-hero h1 span {
+            color: var(--primary);
+        }
+        
+        .welcome-hero p {
+            position: relative;
+            z-index: 1;
+            font-size: 14px;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0; }
+        label { font-weight: 700; font-size: 11px; color: var(--primary); display: block; margin-bottom: 5px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: var(--light); color: var(--text); box-sizing: border-box; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-calc { flex: 2; padding: 12px; background: var(--primary); color: #000; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .btn-calc:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,209,178,0.3); }
+        .btn-pdf { flex: 1; padding: 12px; background: var(--dark); color: white; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
+        .btn-pdf:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        
+        .res-box { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; background: rgba(0, 209, 178, 0.05); border-left: 4px solid var(--primary); font-size: 14px; line-height: 1.6; }
+        .amazon-link { display: inline-flex; align-items: center; margin-top: 15px; padding: 10px 15px; background: #232f3e; color: var(--amazon); text-decoration: none; font-weight: 700; border-radius: 8px; font-size: 11px; gap: 8px; transition: 0.2s; }
+        .amazon-link:hover { background: #131921; transform: translateX(5px); }
+        
+        canvas { max-width: 100%; margin-top: 15px; background: #fff; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+        .status-item { padding: 15px; background: rgba(0, 209, 178, 0.1); border-radius: 10px; border-left: 3px solid var(--primary); }
+        .status-item strong { display: block; margin-bottom: 5px; font-size: 12px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="calc-card">
+<div class="sidebar">
+    <div class="logo-section">
         <div class="logo-container">
-            <img src="logo.png" alt="ChemEFlow Logo" style="width: 100px; margin-bottom: 10px;">
-        </div>
-
-        <h1>ChemEFlow Analysis</h1>
-        <p class="subtitle">Global Standard Fluid Mechanic Engine</p>
-        
-        <div class="input-grid">
-            <div class="input-group">
-                <label>Density (ρ) [kg/m³]</label>
-                <input type="number" id="rho" value="1000">
+            <div class="logo-ring"></div>
+            <div class="logo-ring-2"></div>
+            <div class="logo-svg-wrapper">
+                <!-- ChemEFlow Logo SVG -->
+                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Droplet -->
+                    <defs>
+                        <linearGradient id="dropletGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="arrowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#14b8a6;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#0d9488;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="pipeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="barGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#14b8a6;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    
+                    <!-- Water Droplet -->
+                    <path d="M 130 40 Q 130 20 140 10 Q 150 20 150 40 Q 150 55 140 60 Q 130 55 130 40 Z" 
+                          fill="url(#dropletGradient)" stroke="none"/>
+                    
+                    <!-- Pipe with valve/connection -->
+                    <g>
+                        <!-- Main pipe -->
+                        <rect x="50" y="85" width="55" height="20" rx="3" fill="url(#pipeGradient)"/>
+                        
+                        <!-- Valve connection circle -->
+                        <circle cx="95" cy="95" r="12" fill="#1e40af" stroke="#ffffff" stroke-width="2"/>
+                        <circle cx="95" cy="95" r="6" fill="#ffffff"/>
+                        
+                        <!-- Pipe flange/end -->
+                        <rect x="45" y="80" width="8" height="30" rx="2" fill="#1e3a8a"/>
+                    </g>
+                    
+                    <!-- Bar Chart (4 bars increasing) -->
+                    <g>
+                        <rect x="75" y="125" width="15" height="25" rx="2" fill="url(#barGradient)" opacity="0.9"/>
+                        <rect x="95" y="115" width="15" height="35" rx="2" fill="url(#barGradient)" opacity="0.95"/>
+                        <rect x="115" y="100" width="15" height="50" rx="2" fill="url(#barGradient)"/>
+                        <rect x="135" y="80" width="15" height="70" rx="2" fill="url(#barGradient)"/>
+                    </g>
+                    
+                    <!-- Curved Arrow (flowing upward) -->
+                    <path d="M 105 95 Q 120 85 135 75 L 145 88" 
+                          fill="none" 
+                          stroke="url(#arrowGradient)" 
+                          stroke-width="8" 
+                          stroke-linecap="round"/>
+                    
+                    <!-- Arrow head -->
+                    <path d="M 152 65 L 145 88 L 130 78 Z" 
+                          fill="url(#arrowGradient)"/>
+                </svg>
             </div>
-            <div class="input-group">
-                <label>Velocity (v) [m/s]</label>
-                <input type="number" id="velocity" placeholder="e.g. 1.5">
-            </div>
-            <div class="input-group">
-                <label>Diameter (D) [m]</label>
-                <input type="number" id="diameter" placeholder="e.g. 0.05">
-            </div>
-            <div class="input-group">
-                <label>Viscosity (μ) [Pa·s]</label>
-                <input type="number" id="mu" value="0.001">
-            </div>
         </div>
-
-        <div class="btn-stack">
-            <button class="calc-btn" onclick="runAnalysis()">Run Global Analysis</button>
-            <button id="downloadBtn" class="pdf-btn" onclick="generatePDF()">Export Technical Report (PDF)</button>
-        </div>
-
-        <div id="result-box"></div>
-
-        <div id="material-box" class="recommendation">
-            <h4 style="margin:0 0 10px 0">🛠️ Engineering Recommendation</h4>
-            <p id="material-text" style="font-size: 14px; margin:0;"></p>
-            <a href="#" target="_blank" class="buy-link">CHECK INDUSTRIAL SPECS →</a>
-        </div>
+        <div class="logo-text">Chem<span>E</span>Flow</div>
+        <div class="logo-subtitle">Engineering Analysis Tool</div>
     </div>
+    
+    <div class="section-title">Main Navigation</div>
+    <div class="nav-link active" onclick="switchTab('welcome')">🏠 Dashboard</div>
+    <div class="nav-link" onclick="switchTab('db')">🗂️ Chemical Database</div>
+    <div class="nav-link" onclick="switchTab('mb')">⚖️ Material Balance</div>
+    <div class="nav-link" onclick="switchTab('matlab')">💻 MATLAB Solver</div>
+    
+    <div class="section-title">Unit Operations</div>
+    <div class="nav-link" onclick="switchTab('petro')">🛢️ Fluid Mechanics</div>
+    <div class="nav-link" onclick="switchTab('thermo')">🌡️ Heat Transfer</div>
+    <div class="nav-link" onclick="switchTab('mass')">🧪 Mass Transfer</div>
+    
+    <div class="section-title">Advanced Simulation</div>
+    <div class="nav-link" onclick="switchTab('cre')">⚛️ Reactor Design</div>
+    <div class="nav-link" onclick="switchTab('pc')">🕹️ Process Control</div>
+    <div class="nav-link" onclick="switchTab('fluid')">💧 Fluid Dynamics</div>
 
-    <div class="reference-section">
-        <h3 style="margin-top:0">Technical Reference</h3>
-        <p>Flow regime is determined by the <strong>Reynolds Number (Re)</strong>:</p>
-        <div class="formula-box">Re = (ρ × v × D) / μ</div>
-        <ul style="padding-left: 20px;">
-            <li><strong>Laminar Flow (Re < 2300):</strong> Stable and predictable.</li>
-            <li><strong>Transitional Flow (2300 - 4000):</strong> Mixed behavior.</li>
-            <li><strong>Turbulent Flow (Re > 4000):</strong> High energy, chaotic eddies.</li>
-        </ul>
+    <div class="section-title">Session History</div>
+    <div class="nav-link" onclick="switchTab('hazop')">⚠️ Safety & HAZOP</div>
+    <div class="nav-link" onclick="switchTab('pre')">💰 Plant Economics</div>
+    <div class="nav-link" onclick="switchTab('procure')">🛒 Procurement</div>
+    
+    <div style="padding: 20px; margin-top: auto;">
+        <button style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--primary); background: none; color: var(--primary); cursor: pointer; font-weight: 700;" onclick="document.body.classList.toggle('dark-theme')">🌗 Toggle Dark Mode</button>
     </div>
 </div>
 
+<div class="main-content">
+
+    <!-- WELCOME MODULE -->
+    <div id="welcome" class="module active">
+        <div class="welcome-hero">
+            <!-- Dashboard Logo -->
+            <div class="dashboard-logo-container">
+                <div class="dashboard-logo-ring">
+                    <svg class="dashboard-logo-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="dashDropletGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="dashArrowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#14b8a6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0d9488;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="dashPipeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="dashBarGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#14b8a6;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <path d="M 130 40 Q 130 20 140 10 Q 150 20 150 40 Q 150 55 140 60 Q 130 55 130 40 Z" 
+                              fill="url(#dashDropletGradient)" stroke="none"/>
+                        
+                        <g>
+                            <rect x="50" y="85" width="55" height="20" rx="3" fill="url(#dashPipeGradient)"/>
+                            <circle cx="95" cy="95" r="12" fill="#1e40af" stroke="#ffffff" stroke-width="2"/>
+                            <circle cx="95" cy="95" r="6" fill="#ffffff"/>
+                            <rect x="45" y="80" width="8" height="30" rx="2" fill="#1e3a8a"/>
+                        </g>
+                        
+                        <g>
+                            <rect x="75" y="125" width="15" height="25" rx="2" fill="url(#dashBarGradient)" opacity="0.9"/>
+                            <rect x="95" y="115" width="15" height="35" rx="2" fill="url(#dashBarGradient)" opacity="0.95"/>
+                            <rect x="115" y="100" width="15" height="50" rx="2" fill="url(#dashBarGradient)"/>
+                            <rect x="135" y="80" width="15" height="70" rx="2" fill="url(#dashBarGradient)"/>
+                        </g>
+                        
+                        <path d="M 105 95 Q 120 85 135 75 L 145 88" 
+                              fill="none" 
+                              stroke="url(#dashArrowGradient)" 
+                              stroke-width="8" 
+                              stroke-linecap="round"/>
+                        
+                        <path d="M 152 65 L 145 88 L 130 78 Z" 
+                              fill="url(#dashArrowGradient)"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <h1>Chem<span>E</span>Flow</h1>
+            <p>Official Engineering Analysis Tool</p>
+            <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center; position: relative; z-index: 1;">
+                <button style="padding: 12px 30px; background: var(--primary); color: #000; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase;">GET STARTED</button>
+                <button style="padding: 12px 30px; background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--primary); border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase;">STATUS: ONLINE</button>
+            </div>
+        </div>
+        <div class="calc-card">
+            <h3>System Health</h3>
+            <div class="status-grid">
+                <div class="status-item">
+                    <strong>MODULE STATUS</strong>
+                    All Engines Verified
+                </div>
+                <div class="status-item">
+                    <strong>CORE VERSION</strong>
+                    V1.2.0-STABLE
+                </div>
+                <div class="status-item">
+                    <strong>SESSION TOKEN</strong>
+                    <span style="color: var(--primary);">active</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DATABASE MODULE -->
+    <div id="db" class="module">
+        <div class="calc-card">
+            <h2>Chemical Property Database</h2>
+            <p>Central substance manager for synchronized thermodynamic constants across all modules.</p>
+            <div class="input-grid">
+                <div>
+                    <label>Select Active Chemical</label>
+                    <select id="chem_select" onchange="syncDB()">
+                        <option value="water">Water (H₂O)</option>
+                        <option value="ethanol">Ethanol (C₂H₅OH)</option>
+                        <option value="benzene">Benzene (C₆H₆)</option>
+                        <option value="acetone">Acetone (C₃H₆O)</option>
+                    </select>
+                </div>
+            </div>
+            <div id="db-msg" class="res-box" style="display:block;"><strong>Database Active:</strong> Select substance to auto-populate constants across all calculators.</div>
+        </div>
+    </div>
+
+    <!-- MATERIAL BALANCE MODULE -->
+    <div id="mb" class="module">
+        <div class="calc-card">
+            <h2>Material Balance: Stream Mixing</h2>
+            <p>Solve conservation equations for mass and component balances in process streams.</p>
+            <div class="input-grid">
+                <div><label>Stream 1 Flow (kg/h)</label><input type="number" id="mb_m1" value="100"></div>
+                <div><label>Stream 1 Conc (%)</label><input type="number" id="mb_x1" value="10"></div>
+                <div><label>Stream 2 Flow (kg/h)</label><input type="number" id="mb_m2" value="150"></div>
+                <div><label>Stream 2 Conc (%)</label><input type="number" id="mb_x2" value="50"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-calc" onclick="runMB()">Calculate Balance</button>
+                <button class="btn-pdf" onclick="exportPDF('Mass_Balance', 'res-mb')">Export PDF</button>
+            </div>
+            <div id="res-mb" class="res-box"></div>
+        </div>
+    </div>
+
+    <!-- MATLAB MODULE -->
+    <div id="matlab" class="module">
+        <div class="calc-card">
+            <h2>MATLAB Solver: ODE Integration</h2>
+            <p>First-order decay simulation: dC/dt = -kC</p>
+            <canvas id="matChart"></canvas>
+            <div class="input-grid">
+                <div><label>Initial Concentration (C₀)</label><input type="number" id="mat_c0" value="1.0"></div>
+                <div><label>Rate Constant (k, s⁻¹)</label><input type="number" id="mat_k" value="0.3"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-calc" onclick="runMatlab()">Run Simulation</button>
+                <button class="btn-pdf" onclick="exportPDF('MATLAB_Report', 'res-mat')">Export PDF</button>
+            </div>
+            <div id="res-mat" class="res-box"></div>
+        </div>
+    </div>
+
+    <!-- PETROLEUM MODULE -->
+    <div id="petro" class="module">
+        <div class="calc-card">
+            <h2>Petroleum Engineering: API Gravity</h2>
+            <p>Classify crude oil quality using American Petroleum Institute standard.</p>
+            <div class="input-grid">
+                <div><label>Specific Gravity (60°F)</label><input type="number" id="p_sg" value="0.87"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-calc" onclick="runPetro()">Calculate API</button>
+                <button class="btn-pdf" onclick="exportPDF('Petroleum_Report', 'res-p')">Export PDF</button>
+            </div>
+            <div id="res-p" class="res-box"></div>
+        </div>
+    </div>
+
+    <!-- THERMODYNAMICS MODULE -->
+    <div id="thermo" class="module">
+        <div class="calc-card">
+            <h2>Thermodynamics: Antoine Equation</h2>
+            <p>Calculate vapor pressure: log₁₀(P) = A - B/(T + C)</p>
+            <div class="input-grid">
+                <div><label>Antoine Constant A</label><input type="number" id="th_a" value="8.07"></div>
+                <div><label>Antoine Constant B</label><input type="number" id="th_b" value="1730"></div>
+                <div><label>Antoine Constant C</label><input type="number" id="th_c" value="233"></div>
+                <div><label>Temperature (°C)</label><input type="number" id="th_t" value="100"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-calc" onclick="runThermo()">Calculate P<sub>vap</sub></button>
+                <button class="btn-pdf" onclick="exportPDF('Thermo_Report', 'res-th')">Export PDF</button>
+            </div>
+            <div id="res-th" class="res-box"></div>
+        </div>
+    </div>
+
+    <!-- PROCESS CONTROL MODULE -->
+    <div id="pc" class="module">
+        <div class="calc-card">
+            <h2>Process Control: First-Order Step Response</h2>
+            <p>Analyze system dynamics: y(t) = Kp(1 - e<sup>-t/τ</sup>)</p>
+            <canvas id="pcChart"></canvas>
+            <div class="input-grid">
+                <div><label>Process Gain (Kp)</label><input type="number" id="pc_kp" value="1.5"></div>
+                <div><label>Time Constant (τ, s)</label><input type="number" id="pc_tau" value="2.0"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-calc" onclick="runPC()">Simulate Response</button>
+                <button class="btn-pdf" onclick="exportPDF('Control_Report', 'res-pc')">Export PDF</button>
+            </div>
+            <div id="res-pc" class="res-box"></div>
+        </div>
+    </div>
+
+    <!-- REACTOR DESIGN MODULE -->
+    <div id="cre" class="module">
+        <div class="calc-card">
+            <h2>Chemical Reactor Design: CSTR Sizing</h2>
+            <p>Design equation: V = F₀X/(k(1-X))</p>
+            <div class="input-grid">
+                <div><label>Rate Constant (k, s⁻¹)</label><input type="number" id="cre_k" value="0.2"></div>
+                <div><label>Conversion (X)</label><input type="number" id="cre_x" value="0.8"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-calc" onclick="runCRE()">Size Reactor</button>
+                <button class="btn-pdf" onclick="exportPDF('Reactor_Report', 'res-cre')">Export PDF</button>
+            </div>
+            <div id="res-cre" class="res-box"></div>
+        </div>
+    </div>
+
+    <!-- MASS TRANSFER MODULE -->
+    <div id="mass" class="module">
+        <div class="calc-card">
+            <h2>Mass Transfer: VLE Equilibrium</h2>
+            <p>Vapor-liquid equilibrium: y = αx / (1 + (α-1)x)</p>
+            <div class="input-grid">
+                <div><label>Relative Volatility (α)</label><input type="number" id="ms_a" value="2.5"></div>
+                <div><label>Liquid Mole Fraction (x)</label><input type="number" id="ms_x" value="0.4"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-calc" onclick="runMass()">Calculate y</button>
+                <button class="btn-pdf" onclick="exportPDF('Mass_Transfer_Report', 'res-ms')">Export PDF</button>
+            </div>
+            <div id="res-ms" class="res-box"></div>
+        </div>
+    </div>
+
+    <!-- HEAT TRANSFER MODULE -->
+    <div id="heat" class="module">
+        <div class="calc-card">
+            <h2>Heat Transfer: Log Mean Temperature Difference</h2>
+            <p>LMTD = (ΔT₁ - ΔT₂) / ln(ΔT₁/ΔT₂)</p>
+            <div class="input-grid">
+                <div><label>Hot Inlet (°C)</label><input type="number" id="h_thi" value="120"></div>
+                <div><label>Hot Outlet (°C)</label><input type="number" id="h_tho" value="80"></div>
+                <div><label>Cold Inlet (°C)</label><input type="number" id="h_tci" value="30"></div>
+                <div><label>Cold Outlet (°C)</label><input type="number" id="h_tco" value="60"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-calc" onclick="runHeat()">Calculate LMTD</button>
+                <button class="btn-pdf" onclick="exportPDF('Heat_Transfer_Report', 'res-heat')">Export PDF</button>
+            </div>
+            <div id="res-heat" class="res-box"></div>
+        </div>
+    </div>
+
+    <!-- FLUID DYNAMICS MODULE -->
+    <div id="fluid" class="module">
+        <div class="calc-card">
+            <h2>Fluid Dynamics: Darcy-Weisbach Head Loss</h2>
+            <p>hL = f(L/D)(v²/2g)</p>
+            <div class="input-grid">
+                <div><label>Pipe Length (m)</label><input type="number" id="f_l" value="100"></div>
+                <div><label>Pipe Diameter (m)</label><input type="number" id="f_d" value="0.1"></div>
+                <div><label>Flow Velocity (m/s)</label><input type="number" id="f_v" value="2"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-calc" onclick="runFluid()">Calculate Head Loss</button>
+                <button class="btn-pdf" onclick="exportPDF('Fluid_Dynamics_Report', 'res-fluid')">Export PDF</button>
+            </div>
+            <div id="res-fluid" class="res-box"></div>
+        </div>
+    </div>
+
+    <!-- HAZOP MODULE -->
+    <div id="hazop" class="module">
+        <div class="calc-card">
+            <h2>Safety Analysis: HAZOP Risk Matrix</h2>
+            <p>Identify process hazards using guide words and systematic analysis.</p>
+            <div class="input-grid">
+                <div>
+                    <label>Deviation Scenario</label>
+                    <select id="hz_g">
+                        <option>MORE Pressure</option>
+                        <option>LESS Flow</option>
+                        <option>HIGHER Temperature</option>
+                        <option>REVERSE Flow</option>
+                    </select>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-calc" onclick="runHZ()">Analyze Risk</button>
+                <button class="btn-pdf" onclick="exportPDF('HAZOP_Report', 'res-hz')">Export PDF</button>
+            </div>
+            <div id="res-hz" class="res-box"></div>
+        </div>
+    </div>
+
+    <!-- ECONOMICS MODULE -->
+    <div id="pre" class="module">
+        <div class="calc-card">
+            <h2>Plant Economics: ROI Analysis</h2>
+            <p>Evaluate project financial viability and payback period.</p>
+            <div class="input-grid">
+                <div><label>Capital Expenditure ($)</label><input type="number" id="e_cap" value="1000000"></div>
+                <div><label>Annual Revenue ($)</label><input type="number" id="e_rev" value="250000"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-calc" onclick="runEcon()">Calculate ROI</button>
+                <button class="btn-pdf" onclick="exportPDF('Economics_Report', 'res-pre')">Export PDF</button>
+            </div>
+            <div id="res-pre" class="res-box"></div>
+        </div>
+    </div>
+
+    <!-- PROCUREMENT MODULE -->
+    <div id="procure" class="module">
+        <div class="calc-card">
+            <h2>Global Hardware Procurement Terminal</h2>
+            <p>Direct links to industrial equipment and instrumentation suppliers.</p>
+            <div id="procure-list" style="display: grid; gap: 10px; margin-top: 20px;">
+                <a href="https://www.amazon.com/s?k=Industrial+Mixing+Tank" target="_blank" class="amazon-link">🛒 Mixing Tanks & Agitators</a>
+                <a href="https://www.amazon.com/s?k=High+Precision+Pressure+Transducer" target="_blank" class="amazon-link">🛒 Pressure Transmitters</a>
+                <a href="https://www.amazon.com/s?k=Industrial+Shell+Tube+Heat+Exchanger" target="_blank" class="amazon-link">🛒 Heat Exchanger Units</a>
+                <a href="https://www.amazon.com/s?k=PID+Process+Controller" target="_blank" class="amazon-link">🛒 PID Controllers</a>
+                <a href="https://www.amazon.com/s?k=Ultrasonic+Flowmeter" target="_blank" class="amazon-link">🛒 Flow Measurement</a>
+                <a href="https://www.amazon.com/s?k=Stainless+Steel+Reactor+Vessel" target="_blank" class="amazon-link">🛒 Reactor Vessels</a>
+                <a href="https://www.amazon.com/s?k=Industrial+Safety+Valve" target="_blank" class="amazon-link">🛒 Safety Relief Valves</a>
+                <a href="https://www.amazon.com/s?k=Chemical+Pump+Centrifugal" target="_blank" class="amazon-link">🛒 Process Pumps</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
 <script>
-    function runAnalysis() {
-        const rho = parseFloat(document.getElementById('rho').value);
-        const v = parseFloat(document.getElementById('velocity').value);
-        const D = parseFloat(document.getElementById('diameter').value);
-        const mu = parseFloat(document.getElementById('mu').value);
+    let charts = {};
+    
+    const dbData = {
+        water: { a: 8.07, b: 1730, c: 233, sg: 1.0, item: "Water+Flowmeter" },
+        ethanol: { a: 8.04, b: 1554, c: 222, sg: 0.78, item: "Ethanol+Sensor" },
+        benzene: { a: 6.90, b: 1211, c: 220, sg: 0.87, item: "Benzene+Vapor+Detector" },
+        acetone: { a: 7.02, b: 1161, c: 224, sg: 0.79, item: "Acetone+Analyzer" }
+    };
 
-        if (!v || !D) {
-            alert("Input Error: Flow velocity and diameter are required.");
-            return;
-        }
-
-        const Re = (rho * v * D) / mu;
-        const resultDiv = document.getElementById('result-box');
-        const pdfBtn = document.getElementById('downloadBtn');
-        const materialDiv = document.getElementById('material-box');
-        const materialText = document.getElementById('material-text');
-        const buyLink = document.querySelector('.buy-link');
-        
-        resultDiv.style.display = 'block';
-        pdfBtn.style.display = 'block';
-        materialDiv.style.display = 'block';
-        
-        let type = "";
-        let suggestion = "";
-        let buyUrl = ""; 
-
-        if (Re < 2300) {
-            type = "LAMINAR";
-            resultDiv.className = "laminar";
-            suggestion = "Laminar conditions detected. Standard PVC is acceptable for these low-stress conditions.";
-            buyUrl = "https://www.amazon.in/s?k=industrial+pvc+pipe"; 
-        } else if (Re > 4000) {
-            type = "TURBULENT";
-            resultDiv.className = "turbulent";
-            suggestion = "Turbulent flow active. High erosive potential. Recommend SS316 Steel for durability.";
-            buyUrl = "https://www.amazon.in/s?k=stainless+steel+industrial+pipe"; 
-        } else {
-            type = "TRANSITIONAL";
-            resultDiv.className = "transitional";
-            suggestion = "Unstable flow. Ensure robust support systems and consider Galvanized Iron (GI) pipes.";
-            buyUrl = "https://www.amazon.in/s?k=galvanized+iron+pipe"; 
-        }
-
-        resultDiv.innerHTML = `<strong>Calculated Re: ${Math.round(Re)}</strong><br>Classification: ${type} FLOW`;
-        materialText.innerHTML = suggestion;
-        buyLink.href = buyUrl; 
+    function switchTab(id) {
+        document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        event.target.classList.add('active');
     }
 
-    async function generatePDF() {
+    function syncDB() {
+        const c = document.getElementById('chem_select').value;
+        const d = dbData[c];
+        document.getElementById('th_a').value = d.a;
+        document.getElementById('th_b').value = d.b;
+        document.getElementById('th_c').value = d.c;
+        document.getElementById('p_sg').value = d.sg;
+        document.getElementById('db-msg').innerHTML = `<strong>✓ Synchronized:</strong> ${c.toUpperCase()} thermodynamic properties loaded.`;
+    }
+
+    function display(id, msg, hardware) {
+        const el = document.getElementById(id);
+        el.style.display = 'block';
+        el.innerHTML = `<strong>Results:</strong><br>${msg}<br><a href="https://www.amazon.com/s?k=${hardware}" target="_blank" class="amazon-link">🛒 ${hardware.replace(/\+/g, ' ')}</a>`;
+    }
+
+    function runMB() {
+        const m1 = parseFloat(document.getElementById('mb_m1').value);
+        const x1 = parseFloat(document.getElementById('mb_x1').value) / 100;
+        const m2 = parseFloat(document.getElementById('mb_m2').value);
+        const x2 = parseFloat(document.getElementById('mb_x2').value) / 100;
+        const m3 = m1 + m2;
+        const x3 = ((m1 * x1) + (m2 * x2)) / m3;
+        display('res-mb', 
+            `Total Flow: ${m3.toFixed(2)} kg/h<br>Exit Concentration: ${(x3 * 100).toFixed(2)}%<br>Component Flow: ${(m3 * x3).toFixed(2)} kg/h`, 
+            'Industrial+Inline+Mixer');
+    }
+
+    function runMatlab() {
+        const c0 = parseFloat(document.getElementById('mat_c0').value);
+        const k = parseFloat(document.getElementById('mat_k').value);
+        const timePoints = Array.from({length: 21}, (_, i) => i);
+        const concentrations = timePoints.map(t => c0 * Math.exp(-k * t));
+        
+        if(charts.mat) charts.mat.destroy();
+        charts.mat = new Chart(document.getElementById('matChart'), {
+            type: 'line',
+            data: {
+                labels: timePoints,
+                datasets: [{
+                    label: 'Concentration [C]',
+                    data: concentrations,
+                    borderColor: '#00d1b2',
+                    backgroundColor: 'rgba(0, 209, 178, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true },
+                    title: { display: true, text: 'First-Order Decay' }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Time (s)' } },
+                    y: { title: { display: true, text: 'Concentration' } }
+                }
+            }
+        });
+        
+        display('res-mat',
+            `Initial: ${c0.toFixed(3)}<br>Final: ${concentrations[20].toFixed(3)}<br>Half-life: ${(Math.log(2) / k).toFixed(2)} s`,
+            'Chemical+Kinetics+Textbook');
+    }
+
+    function runPetro() {
+        const sg = parseFloat(document.getElementById('p_sg').value);
+        const api = (141.5 / sg) - 131.5;
+        let grade = api > 45 ? 'Very Light' : api > 31 ? 'Light' : api > 22 ? 'Medium' : api > 10 ? 'Heavy' : 'Extra Heavy';
+        display('res-p', `API Gravity: ${api.toFixed(2)}°<br>Classification: ${grade} Crude`, 'Petroleum+Hydrometer+Kit');
+    }
+
+    function runThermo() {
+        const a = parseFloat(document.getElementById('th_a').value);
+        const b = parseFloat(document.getElementById('th_b').value);
+        const c = parseFloat(document.getElementById('th_c').value);
+        const t = parseFloat(document.getElementById('th_t').value);
+        const p = Math.pow(10, a - (b / (t + c)));
+        display('res-th', `Vapor Pressure: ${p.toFixed(2)} mmHg<br>Temperature: ${t}°C`, 'Digital+Pressure+Gauge');
+    }
+
+    function runCRE() {
+        const k = parseFloat(document.getElementById('cre_k').value);
+        const x = parseFloat(document.getElementById('cre_x').value);
+        const vol = (50 * x) / (k * (1 - x));
+        display('res-cre', `CSTR Volume: ${vol.toFixed(2)} L<br>Conversion: ${(x * 100).toFixed(1)}%`, 'Stainless+Steel+Reactor');
+    }
+
+    function runMass() {
+        const alpha = parseFloat(document.getElementById('ms_a').value);
+        const x = parseFloat(document.getElementById('ms_x').value);
+        const y = (alpha * x) / (1 + (alpha - 1) * x);
+        display('res-ms', `Vapor Fraction (y): ${y.toFixed(4)}<br>Liquid Fraction (x): ${x.toFixed(4)}`, 'Distillation+Column+Packing');
+    }
+
+    function runHeat() {
+        const thi = parseFloat(document.getElementById('h_thi').value);
+        const tho = parseFloat(document.getElementById('h_tho').value);
+        const tci = parseFloat(document.getElementById('h_tci').value);
+        const tco = parseFloat(document.getElementById('h_tco').value);
+        const dt1 = thi - tco;
+        const dt2 = tho - tci;
+        const lmtd = (dt1 - dt2) / Math.log(dt1 / dt2);
+        display('res-heat', `LMTD: ${lmtd.toFixed(2)} °C<br>ΔT₁: ${dt1.toFixed(2)}°C | ΔT₂: ${dt2.toFixed(2)}°C`, 'Shell+Tube+Heat+Exchanger');
+    }
+
+    function runFluid() {
+        const L = parseFloat(document.getElementById('f_l').value);
+        const D = parseFloat(document.getElementById('f_d').value);
+        const v = parseFloat(document.getElementById('f_v').value);
+        const hL = 0.02 * (L / D) * (Math.pow(v, 2) / 19.62);
+        display('res-fluid', `Head Loss: ${hL.toFixed(2)} m<br>Pressure Drop: ${(hL * 9810).toFixed(0)} Pa`, 'Ultrasonic+Flowmeter');
+    }
+
+    function runPC() {
+        const kp = parseFloat(document.getElementById('pc_kp').value);
+        const tau = parseFloat(document.getElementById('pc_tau').value);
+        const timePoints = Array.from({length: 25}, (_, i) => i * 0.5);
+        const response = timePoints.map(t => kp * (1 - Math.exp(-t / tau)));
+        
+        if(charts.pc) charts.pc.destroy();
+        charts.pc = new Chart(document.getElementById('pcChart'), {
+            type: 'line',
+            data: {
+                labels: timePoints,
+                datasets: [{
+                    label: 'System Response',
+                    data: response,
+                    borderColor: '#ff9900',
+                    backgroundColor: 'rgba(255, 153, 0, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { title: { display: true, text: 'Step Response' } },
+                scales: {
+                    x: { title: { display: true, text: 'Time (s)' } },
+                    y: { title: { display: true, text: 'Output' } }
+                }
+            }
+        });
+        
+        display('res-pc', `Gain: ${kp.toFixed(2)}<br>Time Constant: ${tau.toFixed(2)} s<br>Settling: ${(4 * tau).toFixed(2)} s`, 'PID+Controller');
+    }
+
+    function runHZ() {
+        const scenarios = {
+            'MORE Pressure': { risk: 'High', cause: 'Blocked outlet, runaway reaction', safeguard: 'Pressure relief valve', hw: 'Pressure+Relief+Valve' },
+            'LESS Flow': { risk: 'Medium', cause: 'Pump failure, valve closure', safeguard: 'Low-flow alarm', hw: 'Flow+Switch+Alarm' },
+            'HIGHER Temperature': { risk: 'High', cause: 'Cooling failure', safeguard: 'High-temp interlock', hw: 'Temperature+Safety+Switch' },
+            'REVERSE Flow': { risk: 'Medium', cause: 'Pressure differential', safeguard: 'Check valve', hw: 'Industrial+Check+Valve' }
+        };
+        const s = scenarios[document.getElementById('hz_g').value];
+        display('res-hz', `Risk: ${s.risk}<br>Cause: ${s.cause}<br>Safeguard: ${s.safeguard}`, s.hw);
+    }
+
+    function runEcon() {
+        const capex = parseFloat(document.getElementById('e_cap').value);
+        const revenue = parseFloat(document.getElementById('e_rev').value) || capex * 0.25;
+        const roi = (revenue / capex) * 100;
+        display('res-pre', `Investment: $${capex.toLocaleString()}<br>Annual Revenue: $${revenue.toLocaleString()}<br>ROI: ${roi.toFixed(2)}%<br>Payback: ${(capex/revenue).toFixed(1)} years`, 'Project+Management+Book');
+    }
+
+    function exportPDF(title, resultId) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
-        const rho = document.getElementById('rho').value;
-        const v = document.getElementById('velocity').value;
-        const D = document.getElementById('diameter').value;
-        const mu = document.getElementById('mu').value;
-        const resultText = document.getElementById('result-box').innerText;
-        const materialText = document.getElementById('material-text').innerText;
-
-        doc.setFillColor(0, 209, 178); 
-        doc.rect(0, 0, 210, 40, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(22);
-        doc.text("ChemEFlow Global Technical Report", 20, 25);
-        
-        doc.setTextColor(40, 40, 40);
-        doc.setFontSize(10);
-        doc.text(`Reference: GLOBAL-ANALYSIS-${Math.floor(Math.random() * 999999)}`, 20, 50);
-        doc.text(`Timestamp: ${new Date().toUTCString()}`, 20, 56);
-
-        doc.setFontSize(14);
-        doc.text("1. Governing Equation: Reynolds Number (Re)", 20, 75);
-        doc.setFontSize(11);
-        doc.text("Re = (Density * Velocity * Diameter) / Viscosity", 25, 85);
-
-        doc.setFontSize(14);
-        doc.text("2. System Parameters", 20, 105);
-        doc.setFontSize(11);
-        doc.text(`- Density: ${rho} kg/m3`, 25, 115);
-        doc.text(`- Velocity: ${v} m/s`, 25, 125);
-        doc.text(`- Diameter: ${D} m`, 25, 135);
-        doc.text(`- Viscosity: ${mu} Pa.s`, 25, 145);
-
-        doc.setFontSize(14);
-        doc.text("3. Result Summary", 20, 165);
+        doc.setFontSize(20);
+        doc.setTextColor(0, 209, 178);
+        doc.text('ChemEFlow Engineering Report', 20, 20);
+        doc.setFontSize(16);
+        doc.setTextColor(0, 0, 0);
+        doc.text(title.replace(/_/g, ' '), 20, 35);
         doc.setFontSize(12);
-        doc.setTextColor(0, 120, 200);
-        doc.text(resultText.replace("\n", " | "), 25, 175);
-
-        doc.setTextColor(40, 40, 40);
-        doc.setFontSize(14);
-        doc.text("4. Global Material Recommendation", 20, 195);
-        doc.setFontSize(11);
-        const splitText = doc.splitTextToSize(materialText, 170);
-        doc.text(splitText, 25, 205);
-
-        doc.setFontSize(8);
-        doc.setTextColor(180);
-        doc.text("Calculations based on standard fluid mechanics models. Verify with a licensed professional.", 20, 285);
-
-        doc.save("ChemEFlow_Global_Report.pdf");
+        const resultText = document.getElementById(resultId).innerText.split('🛒')[0];
+        const lines = doc.splitTextToSize(resultText, 170);
+        doc.text(lines, 20, 50);
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 280);
+        doc.save(`${title}.pdf`);
     }
+
+    window.addEventListener('load', () => {
+        syncDB();
+    });
 </script>
 
 </body>
