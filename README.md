@@ -21,8 +21,11 @@ Architecture: Vanilla JavaScript with a modular "Branch-Content" logic for seaml
 Data Management: Features local storage for auto-saving calculations and user preferences.
 
 👤 Development Info
+
 Development: Independent Solo Project.
+
 Status: v6.0 PRO - Production Ready.
+
 Build: Optimized Build v6.0.
 
 ## 🌐 Live Access
