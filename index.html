@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChemEFlow | Professional Engineering OS</title>
+    <title>ChemEFlow | All-In-One Engineering Platform v6.0</title>
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%232563eb'/%3E%3Cstop offset='100%25' style='stop-color:%231e40af'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M 130 40 Q 130 20 140 10 Q 150 20 150 40 Q 150 55 140 60 Q 130 55 130 40 Z' fill='url(%23a)'/%3E%3Crect x='75' y='125' width='15' height='25' rx='2' fill='%233b82f6'/%3E%3Crect x='115' y='100' width='15' height='50' rx='2' fill='%2314b8a6'/%3E%3C/svg%3E">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
@@ -16,243 +19,168 @@
             --light: #f8fafc; --card: #ffffff; --text: #1e293b; --amazon: #ff9900;
         }
 
-        .dark-theme { 
-            --light: #0f172a; --sidebar: #020617; --card: #1e293b; --text: #f8fafc; 
-        }
+        .dark-theme { --light: #0f172a; --sidebar: #020617; --card: #1e293b; --text: #f8fafc; }
+        .theme-blue { --primary: #3b82f6; }
+        .theme-purple { --primary: #a855f7; }
+        .theme-green { --primary: #10b981; }
+        .theme-orange { --primary: #f97316; }
         
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background: var(--light); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; transition: 0.3s; }
 
-        /* SIDEBAR */
+        .loading-spinner { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; border: 5px solid rgba(0,209,178,0.3); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; z-index: 10000; display: none; }
+        @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--card); color: var(--text); padding: 30px; border-radius: 20px; max-width: 600px; max-height: 80vh; overflow-y: auto; animation: slideIn 0.3s; }
+        @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-close { float: right; font-size: 28px; cursor: pointer; border: none; background: none; color: var(--text); font-weight: bold; }
+
+        .toast { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: #000; padding: 15px 25px; border-radius: 10px; font-weight: 700; z-index: 10000; animation: slideRight 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        @keyframes slideRight { from { transform: translateX(400px); } to { transform: translateX(0); } }
+
         .sidebar { width: 280px; background: var(--sidebar); color: white; display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; border-right: 1px solid #334155; }
         
-        /* ENHANCED LOGO SECTION */
-        .logo-section { 
-            padding: 30px 20px; 
-            text-align: center; 
-            border-bottom: 1px solid #1e293b; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            gap: 15px;
-            background: linear-gradient(135deg, #0b1120 0%, #1e293b 100%);
-        }
-        
-        .logo-container {
-            position: relative;
-            width: 120px;
-            height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* Animated circular border */
-        .logo-ring {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border: 3px solid transparent;
-            border-radius: 50%;
-            border-top-color: var(--primary);
-            border-right-color: var(--primary);
-            animation: rotate 3s linear infinite;
-        }
-        
-        .logo-ring-2 {
-            position: absolute;
-            width: 90%;
-            height: 90%;
-            border: 2px solid transparent;
-            border-radius: 50%;
-            border-bottom-color: #64748b;
-            border-left-color: #64748b;
-            animation: rotate-reverse 4s linear infinite;
-        }
-        
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        @keyframes rotate-reverse {
-            from { transform: rotate(360deg); }
-            to { transform: rotate(0deg); }
-        }
-        
-        /* Logo SVG wrapper */
-        .logo-svg-wrapper {
-            position: relative;
-            width: 85px;
-            height: 85px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1;
-        }
-        
-        .logo-svg-wrapper svg {
-            width: 100%;
-            height: 100%;
-            filter: drop-shadow(0 4px 15px rgba(0, 209, 178, 0.3));
-        }
-        
-        .logo-text { 
-            font-weight: 800; 
-            font-size: 26px; 
-            color: white;
-            letter-spacing: -1px;
-            text-shadow: 0 2px 10px rgba(0, 209, 178, 0.5);
-        }
-        
-        .logo-text span {
-            color: var(--primary);
-        }
-        
-        .logo-subtitle {
-            font-size: 10px;
-            color: #94a3b8;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+        .logo-section { padding: 30px 20px; text-align: center; border-bottom: 1px solid #1e293b; background: linear-gradient(135deg, #0b1120 0%, #1e293b 100%); }
+        .logo-container { position: relative; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
+        .logo-ring { position: absolute; width: 100%; height: 100%; border: 3px solid transparent; border-radius: 50%; border-top-color: var(--primary); border-right-color: var(--primary); animation: rotate 3s linear infinite; }
+        .logo-ring-2 { position: absolute; width: 90%; height: 90%; border: 2px solid transparent; border-radius: 50%; border-bottom-color: #64748b; border-left-color: #64748b; animation: rotate-reverse 4s linear infinite; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes rotate-reverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+        .logo-svg-wrapper { position: relative; width: 85px; height: 85px; z-index: 1; }
+        .logo-svg-wrapper svg { width: 100%; height: 100%; filter: drop-shadow(0 4px 15px rgba(0, 209, 178, 0.3)); }
+        .logo-text { font-weight: 800; font-size: 26px; color: white; letter-spacing: -1px; text-shadow: 0 2px 10px rgba(0, 209, 178, 0.5); margin-top: 15px; }
+        .logo-text span { color: var(--primary); }
+        .logo-subtitle { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
+
+        .search-box { padding: 15px 20px; }
+        .search-box input { width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid #334155; border-radius: 8px; color: white; font-size: 13px; }
+        .search-box input::placeholder { color: #64748b; }
         
         .section-title { padding: 15px 25px 5px; font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
         .nav-link { padding: 10px 25px; cursor: pointer; font-size: 13px; color: #94a3b8; transition: 0.2s; border-left: 3px solid transparent; display: flex; align-items: center; gap: 10px; }
         .nav-link:hover, .nav-link.active { background: #1e293b; color: white; border-left-color: var(--primary); }
 
-        /* MAIN CONTENT */
+        .converter-panel { margin: 10px 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid #1e293b; }
+        .converter-panel input, .converter-panel select { width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; color: var(--primary); margin-bottom: 8px; font-size: 12px; border-radius: 6px; }
+        .converter-output { font-size: 11px; color: var(--primary); font-weight: 600; margin-top: 5px; }
+
+        .developer-info { padding: 15px 20px; font-size: 11px; color: #94a3b8; line-height: 1.6; border-top: 1px solid #1e293b; }
+        .developer-info p { margin: 5px 0; }
+        .developer-info strong { color: var(--primary); }
+
+        .sidebar-footer { margin-top: auto; padding: 15px 20px; font-size: 9px; opacity: 0.6; text-align: center; border-top: 1px solid #1e293b; }
+
         .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
         .module { display: none; width: 100%; max-width: 900px; }
         .module.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* UI ELEMENTS */
-        .calc-card { background: var(--card); padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 5px solid var(--primary); margin-bottom: 20px; position: relative; }
+        .calc-card, .card { background: var(--card); padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 5px solid var(--primary); margin-bottom: 20px; }
         
-        .welcome-hero { 
-            text-align: center; 
-            padding: 60px 40px; 
-            background: linear-gradient(135deg, #0b1120 0%, #1e293b 50%, #334155 100%);
-            color: white; 
-            border-radius: 20px; 
-            margin-bottom: 30px; 
-            width: 100%; 
-            box-sizing: border-box;
-            position: relative;
-            overflow: hidden;
-        }
+        .welcome-hero { text-align: center; padding: 60px 40px; background: linear-gradient(135deg, #0b1120 0%, #1e293b 50%, #334155 100%); color: white; border-radius: 20px; margin-bottom: 30px; width: 100%; position: relative; overflow: hidden; }
+        .welcome-hero::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(0, 209, 178, 0.1) 0%, transparent 70%); animation: pulse 4s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 0.8; } }
         
-        .welcome-hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(0, 209, 178, 0.1) 0%, transparent 70%);
-            animation: pulse 4s ease-in-out infinite;
-        }
+        .dashboard-logo-container { position: relative; z-index: 1; margin-bottom: 20px; }
+        .dashboard-logo-ring { position: relative; width: 140px; height: 140px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+        .dashboard-logo-ring::before { content: ''; position: absolute; width: 100%; height: 100%; border: 3px solid transparent; border-radius: 50%; border-top-color: var(--primary); border-right-color: var(--primary); animation: rotate 3s linear infinite; }
+        .dashboard-logo-ring::after { content: ''; position: absolute; width: 90%; height: 90%; border: 2px solid transparent; border-radius: 50%; border-bottom-color: rgba(255, 255, 255, 0.3); border-left-color: rgba(255, 255, 255, 0.3); animation: rotate-reverse 4s linear infinite; }
+        .dashboard-logo-svg { width: 100px; height: 100px; filter: drop-shadow(0 8px 20px rgba(0, 209, 178, 0.4)); z-index: 1; }
         
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-        }
-        
-        /* Dashboard Logo Container */
-        .dashboard-logo-container {
-            position: relative;
-            z-index: 1;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .dashboard-logo-ring {
-            position: relative;
-            width: 140px;
-            height: 140px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .dashboard-logo-ring::before {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border: 3px solid transparent;
-            border-radius: 50%;
-            border-top-color: var(--primary);
-            border-right-color: var(--primary);
-            animation: rotate 3s linear infinite;
-        }
-        
-        .dashboard-logo-ring::after {
-            content: '';
-            position: absolute;
-            width: 90%;
-            height: 90%;
-            border: 2px solid transparent;
-            border-radius: 50%;
-            border-bottom-color: rgba(255, 255, 255, 0.3);
-            border-left-color: rgba(255, 255, 255, 0.3);
-            animation: rotate-reverse 4s linear infinite;
-        }
-        
-        .dashboard-logo-svg {
-            width: 100px;
-            height: 100px;
-            filter: drop-shadow(0 8px 20px rgba(0, 209, 178, 0.4));
-            z-index: 1;
-        }
-        
-        .welcome-hero h1 {
-            position: relative;
-            z-index: 1;
-            font-size: 42px;
-            margin: 0 0 10px 0;
-            font-weight: 800;
-            letter-spacing: -1px;
-        }
-        
-        .welcome-hero h1 span {
-            color: var(--primary);
-        }
-        
-        .welcome-hero p {
-            position: relative;
-            z-index: 1;
-            font-size: 14px;
-            color: #94a3b8;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+        .welcome-hero h1 { position: relative; z-index: 1; font-size: 42px; margin: 10px 0; font-weight: 800; letter-spacing: -1px; }
+        .welcome-hero h1 span { color: var(--primary); }
+        .welcome-hero p { position: relative; z-index: 1; font-size: 14px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
         
         .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0; }
         label { font-weight: 700; font-size: 11px; color: var(--primary); display: block; margin-bottom: 5px; text-transform: uppercase; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: var(--light); color: var(--text); box-sizing: border-box; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: var(--light); color: var(--text); }
         
-        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-calc { flex: 2; padding: 12px; background: var(--primary); color: #000; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .btn-calc:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,209,178,0.3); }
-        .btn-pdf { flex: 1; padding: 12px; background: var(--dark); color: white; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .btn-calc, button { flex: 2; padding: 12px; background: var(--primary); color: #000; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.2s; min-width: 120px; }
+        .btn-calc:hover, button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,209,178,0.3); }
+        .btn-pdf { flex: 1; padding: 12px; background: var(--dark); color: white; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; min-width: 100px; }
         .btn-pdf:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         
-        .res-box { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; background: rgba(0, 209, 178, 0.05); border-left: 4px solid var(--primary); font-size: 14px; line-height: 1.6; }
+        .res-box, .result-box { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; background: rgba(0, 209, 178, 0.05); border-left: 4px solid var(--primary); font-size: 14px; line-height: 1.6; }
         .amazon-link { display: inline-flex; align-items: center; margin-top: 15px; padding: 10px 15px; background: #232f3e; color: var(--amazon); text-decoration: none; font-weight: 700; border-radius: 8px; font-size: 11px; gap: 8px; transition: 0.2s; }
         .amazon-link:hover { background: #131921; transform: translateX(5px); }
-        
-        canvas { max-width: 100%; margin-top: 15px; background: #fff; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
         .status-item { padding: 15px; background: rgba(0, 209, 178, 0.1); border-radius: 10px; border-left: 3px solid var(--primary); }
         .status-item strong { display: block; margin-bottom: 5px; font-size: 12px; }
+
+        .history-item { padding: 10px 15px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 10px; cursor: pointer; border-left: 3px solid var(--primary); transition: 0.2s; }
+        .history-item:hover { background: rgba(255,255,255,0.1); transform: translateX(5px); }
+
+        .module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .module-card { background: var(--card); padding: 20px; border-radius: 15px; border-left: 4px solid var(--primary); cursor: pointer; transition: 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .module-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .module-card h3 { margin-bottom: 10px; color: var(--primary); font-size: 16px; }
+        .module-card p { font-size: 13px; line-height: 1.5; }
+        .module-card small { display: block; margin-top: 8px; color: var(--primary); font-weight: 700; font-size: 11px; }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow-y: auto; height: auto; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 2px solid #334155; }
+            .main-content { width: 100%; padding: 15px; }
+            .input-grid { grid-template-columns: 1fr; }
+            .welcome-hero { padding: 40px 20px; }
+            .welcome-hero h1 { font-size: 32px; }
+            .calc-card, .card { padding: 20px; }
+            .btn-group { flex-direction: column; }
+            .btn-calc, .btn-pdf { width: 100%; }
+            .modal-content { margin: 20px; max-width: calc(100% - 40px); }
+            .module-grid { grid-template-columns: 1fr; }
+        }
+
+        @media print {
+            .sidebar, .btn-group, .amazon-link { display: none !important; }
+            .main-content { padding: 0; }
+            .calc-card, .card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+        }
     </style>
 </head>
 <body>
+
+<div class="loading-spinner" id="loadingSpinner"></div>
+
+<div class="modal" id="historyModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('historyModal')">×</button>
+        <h2>Calculation History</h2>
+        <div id="historyList"></div>
+        <button onclick="clearHistory()" style="width:100%; padding:10px; background:#64748b; color:white; border:none; border-radius:8px; margin-top:15px; cursor:pointer;">Clear All History</button>
+    </div>
+</div>
+
+<div class="modal" id="settingsModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('settingsModal')">×</button>
+        <h2>Settings & Preferences</h2>
+        <div style="margin:20px 0;">
+            <h3>Color Theme</h3>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+                <button onclick="changeTheme('default')" style="padding:10px 20px; background:#00d1b2; border:none; border-radius:5px; cursor:pointer; color:#000; font-weight:700;">Default</button>
+                <button onclick="changeTheme('blue')" style="padding:10px 20px; background:#3b82f6; border:none; border-radius:5px; cursor:pointer; color:white; font-weight:700;">Blue</button>
+                <button onclick="changeTheme('purple')" style="padding:10px 20px; background:#a855f7; border:none; border-radius:5px; cursor:pointer; color:white; font-weight:700;">Purple</button>
+                <button onclick="changeTheme('green')" style="padding:10px 20px; background:#10b981; border:none; border-radius:5px; cursor:pointer; color:white; font-weight:700;">Green</button>
+                <button onclick="changeTheme('orange')" style="padding:10px 20px; background:#f97316; border:none; border-radius:5px; cursor:pointer; color:white; font-weight:700;">Orange</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="shareModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('shareModal')">×</button>
+        <h2>Share Calculation</h2>
+        <p>Copy this link to share:</p>
+        <input type="text" id="shareLink" readonly style="width:100%; padding:10px; margin:10px 0; border-radius:8px; border:1px solid #e2e8f0;">
+        <button onclick="copyShareLink()" style="width:100%; padding:12px; background:var(--primary); color:#000; border:none; border-radius:8px; font-weight:800; cursor:pointer;">📋 Copy Link</button>
+    </div>
+</div>
 
 <div class="sidebar">
     <div class="logo-section">
@@ -260,9 +188,7 @@
             <div class="logo-ring"></div>
             <div class="logo-ring-2"></div>
             <div class="logo-svg-wrapper">
-                <!-- ChemEFlow Logo SVG -->
                 <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Droplet -->
                     <defs>
                         <linearGradient id="dropletGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
@@ -282,81 +208,81 @@
                             <stop offset="100%" style="stop-color:#14b8a6;stop-opacity:1" />
                         </linearGradient>
                     </defs>
-                    
-                    <!-- Water Droplet -->
-                    <path d="M 130 40 Q 130 20 140 10 Q 150 20 150 40 Q 150 55 140 60 Q 130 55 130 40 Z" 
-                          fill="url(#dropletGradient)" stroke="none"/>
-                    
-                    <!-- Pipe with valve/connection -->
+                    <path d="M 130 40 Q 130 20 140 10 Q 150 20 150 40 Q 150 55 140 60 Q 130 55 130 40 Z" fill="url(#dropletGradient)" stroke="none"/>
                     <g>
-                        <!-- Main pipe -->
                         <rect x="50" y="85" width="55" height="20" rx="3" fill="url(#pipeGradient)"/>
-                        
-                        <!-- Valve connection circle -->
                         <circle cx="95" cy="95" r="12" fill="#1e40af" stroke="#ffffff" stroke-width="2"/>
                         <circle cx="95" cy="95" r="6" fill="#ffffff"/>
-                        
-                        <!-- Pipe flange/end -->
                         <rect x="45" y="80" width="8" height="30" rx="2" fill="#1e3a8a"/>
                     </g>
-                    
-                    <!-- Bar Chart (4 bars increasing) -->
                     <g>
                         <rect x="75" y="125" width="15" height="25" rx="2" fill="url(#barGradient)" opacity="0.9"/>
                         <rect x="95" y="115" width="15" height="35" rx="2" fill="url(#barGradient)" opacity="0.95"/>
                         <rect x="115" y="100" width="15" height="50" rx="2" fill="url(#barGradient)"/>
                         <rect x="135" y="80" width="15" height="70" rx="2" fill="url(#barGradient)"/>
                     </g>
-                    
-                    <!-- Curved Arrow (flowing upward) -->
-                    <path d="M 105 95 Q 120 85 135 75 L 145 88" 
-                          fill="none" 
-                          stroke="url(#arrowGradient)" 
-                          stroke-width="8" 
-                          stroke-linecap="round"/>
-                    
-                    <!-- Arrow head -->
-                    <path d="M 152 65 L 145 88 L 130 78 Z" 
-                          fill="url(#arrowGradient)"/>
+                    <path d="M 105 95 Q 120 85 135 75 L 145 88" fill="none" stroke="url(#arrowGradient)" stroke-width="8" stroke-linecap="round"/>
+                    <path d="M 152 65 L 145 88 L 130 78 Z" fill="url(#arrowGradient)"/>
                 </svg>
             </div>
         </div>
         <div class="logo-text">Chem<span>E</span>Flow</div>
-        <div class="logo-subtitle">Engineering Analysis Tool</div>
+        <div class="logo-subtitle">All-In-One Engineering Platform v6.0</div>
+    </div>
+
+    <div class="search-box">
+        <input type="text" placeholder="🔍 Search modules (Ctrl+K)" id="searchInput" onkeyup="searchModules()">
     </div>
     
     <div class="section-title">Main Navigation</div>
     <div class="nav-link active" onclick="switchTab('welcome')">🏠 Dashboard</div>
-    <div class="nav-link" onclick="switchTab('db')">🗂️ Chemical Database</div>
-    <div class="nav-link" onclick="switchTab('mb')">⚖️ Material Balance</div>
-    <div class="nav-link" onclick="switchTab('matlab')">💻 MATLAB Solver</div>
+    <div class="nav-link" onclick="openModal('historyModal'); loadHistory()">📊 History</div>
+    <div class="nav-link" onclick="openModal('settingsModal')">⚙️ Settings</div>
     
-    <div class="section-title">Unit Operations</div>
-    <div class="nav-link" onclick="switchTab('petro')">🛢️ Fluid Mechanics</div>
-    <div class="nav-link" onclick="switchTab('thermo')">🌡️ Heat Transfer</div>
-    <div class="nav-link" onclick="switchTab('mass')">🧪 Mass Transfer</div>
-    
-    <div class="section-title">Advanced Simulation</div>
-    <div class="nav-link" onclick="switchTab('cre')">⚛️ Reactor Design</div>
-    <div class="nav-link" onclick="switchTab('pc')">🕹️ Process Control</div>
-    <div class="nav-link" onclick="switchTab('fluid')">💧 Fluid Dynamics</div>
+    <div class="section-title">Engineering Branches</div>
+    <div class="nav-link" onclick="showBranchModules('chemical')">🧪 Chemical Engineering</div>
+    <div class="nav-link" onclick="showBranchModules('mechanical')">⚙️ Mechanical Engineering</div>
+    <div class="nav-link" onclick="showBranchModules('civil')">🏗️ Civil Engineering</div>
+    <div class="nav-link" onclick="showBranchModules('electrical')">⚡ Electrical Engineering</div>
+    <div class="nav-link" onclick="showBranchModules('industrial')">🏭 Industrial Engineering</div>
 
-    <div class="section-title">Session History</div>
-    <div class="nav-link" onclick="switchTab('hazop')">⚠️ Safety & HAZOP</div>
-    <div class="nav-link" onclick="switchTab('pre')">💰 Plant Economics</div>
-    <div class="nav-link" onclick="switchTab('procure')">🛒 Procurement</div>
+    <div class="section-title">Quick Converter</div>
+    <div class="converter-panel">
+        <label style="color: var(--primary); font-size: 10px; margin-bottom: 8px; display: block;">Smart Unit Conversion</label>
+        <input type="number" id="conv_in" placeholder="Enter Value" oninput="quickConvert()">
+        <select id="conv_type">
+            <option value="pressure">Pressure (Bar → PSI)</option>
+            <option value="power">Power (kW → HP)</option>
+            <option value="force">Force (kN → lbf)</option>
+            <option value="current">Current (A → mA)</option>
+            <option value="temp">Temperature (°C → °F)</option>
+        </select>
+        <div id="conv_out" class="converter-output">Result will show here...</div>
+    </div>
+
+    <div class="section-title">Developer Info</div>
+    <div class="developer-info">
+        <p><strong>Platform:</strong> ChemEFlow Ultimate</p>
+        <p><strong>Version:</strong> v6.0.0-PRO</p>
+        <p><strong>Modules:</strong> 100+ Active</p>
+        <p><strong>Build:</strong> Production</p>
+    </div>
     
-    <div style="padding: 20px; margin-top: auto;">
-        <button style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--primary); background: none; color: var(--primary); cursor: pointer; font-weight: 700;" onclick="document.body.classList.toggle('dark-theme')">🌗 Toggle Dark Mode</button>
+    <div style="padding: 20px;">
+        <button style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--primary); background: none; color: var(--primary); cursor: pointer; font-weight: 700; margin-bottom:10px;" onclick="document.body.classList.toggle('dark-theme')">🌗 Toggle Dark Mode</button>
+        <button style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--primary); background: none; color: var(--primary); cursor: pointer; font-weight: 700;" onclick="window.print()">🖨️ Print Page</button>
+    </div>
+
+    <div class="sidebar-footer">
+        ChemEFlow Ultimate v6.0.0-PRO<br>
+        Status: All Systems Operational<br>
+        <span id="clock"></span>
     </div>
 </div>
 
-<div class="main-content">
-
-    <!-- WELCOME MODULE -->
+<div class="main-content" id="mainContent">
     <div id="welcome" class="module active">
         <div class="welcome-hero">
-            <!-- Dashboard Logo -->
             <div class="dashboard-logo-container">
                 <div class="dashboard-logo-ring">
                     <svg class="dashboard-logo-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -379,509 +305,1582 @@
                                 <stop offset="100%" style="stop-color:#14b8a6;stop-opacity:1" />
                             </linearGradient>
                         </defs>
-                        
-                        <path d="M 130 40 Q 130 20 140 10 Q 150 20 150 40 Q 150 55 140 60 Q 130 55 130 40 Z" 
-                              fill="url(#dashDropletGradient)" stroke="none"/>
-                        
+                        <path d="M 130 40 Q 130 20 140 10 Q 150 20 150 40 Q 150 55 140 60 Q 130 55 130 40 Z" fill="url(#dashDropletGradient)" stroke="none"/>
                         <g>
                             <rect x="50" y="85" width="55" height="20" rx="3" fill="url(#dashPipeGradient)"/>
                             <circle cx="95" cy="95" r="12" fill="#1e40af" stroke="#ffffff" stroke-width="2"/>
                             <circle cx="95" cy="95" r="6" fill="#ffffff"/>
                             <rect x="45" y="80" width="8" height="30" rx="2" fill="#1e3a8a"/>
                         </g>
-                        
                         <g>
                             <rect x="75" y="125" width="15" height="25" rx="2" fill="url(#dashBarGradient)" opacity="0.9"/>
                             <rect x="95" y="115" width="15" height="35" rx="2" fill="url(#dashBarGradient)" opacity="0.95"/>
                             <rect x="115" y="100" width="15" height="50" rx="2" fill="url(#dashBarGradient)"/>
                             <rect x="135" y="80" width="15" height="70" rx="2" fill="url(#dashBarGradient)"/>
                         </g>
-                        
-                        <path d="M 105 95 Q 120 85 135 75 L 145 88" 
-                              fill="none" 
-                              stroke="url(#dashArrowGradient)" 
-                              stroke-width="8" 
-                              stroke-linecap="round"/>
-                        
-                        <path d="M 152 65 L 145 88 L 130 78 Z" 
-                              fill="url(#dashArrowGradient)"/>
+                        <path d="M 105 95 Q 120 85 135 75 L 145 88" fill="none" stroke="url(#dashArrowGradient)" stroke-width="8" stroke-linecap="round"/>
+                        <path d="M 152 65 L 145 88 L 130 78 Z" fill="url(#dashArrowGradient)"/>
                     </svg>
                 </div>
             </div>
             
             <h1>Chem<span>E</span>Flow</h1>
-            <p>Official Engineering Analysis Tool</p>
-            <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center; position: relative; z-index: 1;">
-                <button style="padding: 12px 30px; background: var(--primary); color: #000; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase;">GET STARTED</button>
-                <button style="padding: 12px 30px; background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--primary); border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase;">STATUS: ONLINE</button>
+            <p>Ultimate All-In-One Engineering Platform</p>
+            <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center; position: relative; z-index: 1; flex-wrap:wrap;">
+                <button style="padding: 12px 30px; background: var(--primary); color: #000; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase;" onclick="showBranchModules('chemical')">GET STARTED</button>
+                <button style="padding: 12px 30px; background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--primary); border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase;" onclick="viewStats()">VIEW STATS</button>
             </div>
         </div>
+        
         <div class="calc-card">
-            <h3>System Health</h3>
+            <h2>🎓 Engineering Disciplines</h2>
+            <div class="module-grid">
+                <div class="module-card" onclick="showBranchModules('chemical')">
+                    <h3>🧪 Chemical Engineering</h3>
+                    <p>10 Modules: Thermodynamics, Reactor Design, Mass Transfer, Unit Operations</p>
+                </div>
+                <div class="module-card" onclick="showBranchModules('mechanical')">
+                    <h3>⚙️ Mechanical Engineering</h3>
+                    <p>20 Modules: Mechanics, Thermodynamics, Machine Design, Manufacturing</p>
+                </div>
+                <div class="module-card" onclick="showBranchModules('civil')">
+                    <h3>🏗️ Civil Engineering</h3>
+                    <p>20 Modules: Structures, Geotechnical, Hydraulics, Transportation</p>
+                </div>
+                <div class="module-card" onclick="showBranchModules('electrical')">
+                    <h3>⚡ Electrical Engineering</h3>
+                    <p>25 Modules: Circuits, Power Systems, Electronics, Control Systems</p>
+                </div>
+                <div class="module-card" onclick="showBranchModules('industrial')">
+                    <h3>🏭 Industrial Engineering</h3>
+                    <p>15 Modules: Operations Research, Quality Control, Production Planning</p>
+                </div>
+                <div class="module-card" onclick="window.print()">
+                    <h3>📊 Export & Reports</h3>
+                    <p>PDF, Excel, Share Links - Professional reporting tools</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="calc-card">
+            <h3>System Status</h3>
             <div class="status-grid">
                 <div class="status-item">
-                    <strong>MODULE STATUS</strong>
-                    All Engines Verified
+                    <strong>TOTAL MODULES</strong>
+                    90+ Active Calculators
                 </div>
                 <div class="status-item">
-                    <strong>CORE VERSION</strong>
-                    V1.2.0-STABLE
+                    <strong>VERSION</strong>
+                    v6.0.0-PRO Ultimate
                 </div>
                 <div class="status-item">
-                    <strong>SESSION TOKEN</strong>
-                    <span style="color: var(--primary);">active</span>
+                    <strong>STATUS</strong>
+                    <span style="color: var(--primary);">ALL SYSTEMS GO</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- DATABASE MODULE -->
-    <div id="db" class="module">
-        <div class="calc-card">
-            <h2>Chemical Property Database</h2>
-            <p>Central substance manager for synchronized thermodynamic constants across all modules.</p>
-            <div class="input-grid">
-                <div>
-                    <label>Select Active Chemical</label>
-                    <select id="chem_select" onchange="syncDB()">
-                        <option value="water">Water (H₂O)</option>
-                        <option value="ethanol">Ethanol (C₂H₅OH)</option>
-                        <option value="benzene">Benzene (C₆H₆)</option>
-                        <option value="acetone">Acetone (C₃H₆O)</option>
-                    </select>
-                </div>
-            </div>
-            <div id="db-msg" class="res-box" style="display:block;"><strong>Database Active:</strong> Select substance to auto-populate constants across all calculators.</div>
-        </div>
-    </div>
-
-    <!-- MATERIAL BALANCE MODULE -->
-    <div id="mb" class="module">
-        <div class="calc-card">
-            <h2>Material Balance: Stream Mixing</h2>
-            <p>Solve conservation equations for mass and component balances in process streams.</p>
-            <div class="input-grid">
-                <div><label>Stream 1 Flow (kg/h)</label><input type="number" id="mb_m1" value="100"></div>
-                <div><label>Stream 1 Conc (%)</label><input type="number" id="mb_x1" value="10"></div>
-                <div><label>Stream 2 Flow (kg/h)</label><input type="number" id="mb_m2" value="150"></div>
-                <div><label>Stream 2 Conc (%)</label><input type="number" id="mb_x2" value="50"></div>
-            </div>
-            <div class="btn-group">
-                <button class="btn-calc" onclick="runMB()">Calculate Balance</button>
-                <button class="btn-pdf" onclick="exportPDF('Mass_Balance', 'res-mb')">Export PDF</button>
-            </div>
-            <div id="res-mb" class="res-box"></div>
-        </div>
-    </div>
-
-    <!-- MATLAB MODULE -->
-    <div id="matlab" class="module">
-        <div class="calc-card">
-            <h2>MATLAB Solver: ODE Integration</h2>
-            <p>First-order decay simulation: dC/dt = -kC</p>
-            <canvas id="matChart"></canvas>
-            <div class="input-grid">
-                <div><label>Initial Concentration (C₀)</label><input type="number" id="mat_c0" value="1.0"></div>
-                <div><label>Rate Constant (k, s⁻¹)</label><input type="number" id="mat_k" value="0.3"></div>
-            </div>
-            <div class="btn-group">
-                <button class="btn-calc" onclick="runMatlab()">Run Simulation</button>
-                <button class="btn-pdf" onclick="exportPDF('MATLAB_Report', 'res-mat')">Export PDF</button>
-            </div>
-            <div id="res-mat" class="res-box"></div>
-        </div>
-    </div>
-
-    <!-- PETROLEUM MODULE -->
-    <div id="petro" class="module">
-        <div class="calc-card">
-            <h2>Petroleum Engineering: API Gravity</h2>
-            <p>Classify crude oil quality using American Petroleum Institute standard.</p>
-            <div class="input-grid">
-                <div><label>Specific Gravity (60°F)</label><input type="number" id="p_sg" value="0.87"></div>
-            </div>
-            <div class="btn-group">
-                <button class="btn-calc" onclick="runPetro()">Calculate API</button>
-                <button class="btn-pdf" onclick="exportPDF('Petroleum_Report', 'res-p')">Export PDF</button>
-            </div>
-            <div id="res-p" class="res-box"></div>
-        </div>
-    </div>
-
-    <!-- THERMODYNAMICS MODULE -->
-    <div id="thermo" class="module">
-        <div class="calc-card">
-            <h2>Thermodynamics: Antoine Equation</h2>
-            <p>Calculate vapor pressure: log₁₀(P) = A - B/(T + C)</p>
-            <div class="input-grid">
-                <div><label>Antoine Constant A</label><input type="number" id="th_a" value="8.07"></div>
-                <div><label>Antoine Constant B</label><input type="number" id="th_b" value="1730"></div>
-                <div><label>Antoine Constant C</label><input type="number" id="th_c" value="233"></div>
-                <div><label>Temperature (°C)</label><input type="number" id="th_t" value="100"></div>
-            </div>
-            <div class="btn-group">
-                <button class="btn-calc" onclick="runThermo()">Calculate P<sub>vap</sub></button>
-                <button class="btn-pdf" onclick="exportPDF('Thermo_Report', 'res-th')">Export PDF</button>
-            </div>
-            <div id="res-th" class="res-box"></div>
-        </div>
-    </div>
-
-    <!-- PROCESS CONTROL MODULE -->
-    <div id="pc" class="module">
-        <div class="calc-card">
-            <h2>Process Control: First-Order Step Response</h2>
-            <p>Analyze system dynamics: y(t) = Kp(1 - e<sup>-t/τ</sup>)</p>
-            <canvas id="pcChart"></canvas>
-            <div class="input-grid">
-                <div><label>Process Gain (Kp)</label><input type="number" id="pc_kp" value="1.5"></div>
-                <div><label>Time Constant (τ, s)</label><input type="number" id="pc_tau" value="2.0"></div>
-            </div>
-            <div class="btn-group">
-                <button class="btn-calc" onclick="runPC()">Simulate Response</button>
-                <button class="btn-pdf" onclick="exportPDF('Control_Report', 'res-pc')">Export PDF</button>
-            </div>
-            <div id="res-pc" class="res-box"></div>
-        </div>
-    </div>
-
-    <!-- REACTOR DESIGN MODULE -->
-    <div id="cre" class="module">
-        <div class="calc-card">
-            <h2>Chemical Reactor Design: CSTR Sizing</h2>
-            <p>Design equation: V = F₀X/(k(1-X))</p>
-            <div class="input-grid">
-                <div><label>Rate Constant (k, s⁻¹)</label><input type="number" id="cre_k" value="0.2"></div>
-                <div><label>Conversion (X)</label><input type="number" id="cre_x" value="0.8"></div>
-            </div>
-            <div class="btn-group">
-                <button class="btn-calc" onclick="runCRE()">Size Reactor</button>
-                <button class="btn-pdf" onclick="exportPDF('Reactor_Report', 'res-cre')">Export PDF</button>
-            </div>
-            <div id="res-cre" class="res-box"></div>
-        </div>
-    </div>
-
-    <!-- MASS TRANSFER MODULE -->
-    <div id="mass" class="module">
-        <div class="calc-card">
-            <h2>Mass Transfer: VLE Equilibrium</h2>
-            <p>Vapor-liquid equilibrium: y = αx / (1 + (α-1)x)</p>
-            <div class="input-grid">
-                <div><label>Relative Volatility (α)</label><input type="number" id="ms_a" value="2.5"></div>
-                <div><label>Liquid Mole Fraction (x)</label><input type="number" id="ms_x" value="0.4"></div>
-            </div>
-            <div class="btn-group">
-                <button class="btn-calc" onclick="runMass()">Calculate y</button>
-                <button class="btn-pdf" onclick="exportPDF('Mass_Transfer_Report', 'res-ms')">Export PDF</button>
-            </div>
-            <div id="res-ms" class="res-box"></div>
-        </div>
-    </div>
-
-    <!-- HEAT TRANSFER MODULE -->
-    <div id="heat" class="module">
-        <div class="calc-card">
-            <h2>Heat Transfer: Log Mean Temperature Difference</h2>
-            <p>LMTD = (ΔT₁ - ΔT₂) / ln(ΔT₁/ΔT₂)</p>
-            <div class="input-grid">
-                <div><label>Hot Inlet (°C)</label><input type="number" id="h_thi" value="120"></div>
-                <div><label>Hot Outlet (°C)</label><input type="number" id="h_tho" value="80"></div>
-                <div><label>Cold Inlet (°C)</label><input type="number" id="h_tci" value="30"></div>
-                <div><label>Cold Outlet (°C)</label><input type="number" id="h_tco" value="60"></div>
-            </div>
-            <div class="btn-group">
-                <button class="btn-calc" onclick="runHeat()">Calculate LMTD</button>
-                <button class="btn-pdf" onclick="exportPDF('Heat_Transfer_Report', 'res-heat')">Export PDF</button>
-            </div>
-            <div id="res-heat" class="res-box"></div>
-        </div>
-    </div>
-
-    <!-- FLUID DYNAMICS MODULE -->
-    <div id="fluid" class="module">
-        <div class="calc-card">
-            <h2>Fluid Dynamics: Darcy-Weisbach Head Loss</h2>
-            <p>hL = f(L/D)(v²/2g)</p>
-            <div class="input-grid">
-                <div><label>Pipe Length (m)</label><input type="number" id="f_l" value="100"></div>
-                <div><label>Pipe Diameter (m)</label><input type="number" id="f_d" value="0.1"></div>
-                <div><label>Flow Velocity (m/s)</label><input type="number" id="f_v" value="2"></div>
-            </div>
-            <div class="btn-group">
-                <button class="btn-calc" onclick="runFluid()">Calculate Head Loss</button>
-                <button class="btn-pdf" onclick="exportPDF('Fluid_Dynamics_Report', 'res-fluid')">Export PDF</button>
-            </div>
-            <div id="res-fluid" class="res-box"></div>
-        </div>
-    </div>
-
-    <!-- HAZOP MODULE -->
-    <div id="hazop" class="module">
-        <div class="calc-card">
-            <h2>Safety Analysis: HAZOP Risk Matrix</h2>
-            <p>Identify process hazards using guide words and systematic analysis.</p>
-            <div class="input-grid">
-                <div>
-                    <label>Deviation Scenario</label>
-                    <select id="hz_g">
-                        <option>MORE Pressure</option>
-                        <option>LESS Flow</option>
-                        <option>HIGHER Temperature</option>
-                        <option>REVERSE Flow</option>
-                    </select>
-                </div>
-            </div>
-            <div class="btn-group">
-                <button class="btn-calc" onclick="runHZ()">Analyze Risk</button>
-                <button class="btn-pdf" onclick="exportPDF('HAZOP_Report', 'res-hz')">Export PDF</button>
-            </div>
-            <div id="res-hz" class="res-box"></div>
-        </div>
-    </div>
-
-    <!-- ECONOMICS MODULE -->
-    <div id="pre" class="module">
-        <div class="calc-card">
-            <h2>Plant Economics: ROI Analysis</h2>
-            <p>Evaluate project financial viability and payback period.</p>
-            <div class="input-grid">
-                <div><label>Capital Expenditure ($)</label><input type="number" id="e_cap" value="1000000"></div>
-                <div><label>Annual Revenue ($)</label><input type="number" id="e_rev" value="250000"></div>
-            </div>
-            <div class="btn-group">
-                <button class="btn-calc" onclick="runEcon()">Calculate ROI</button>
-                <button class="btn-pdf" onclick="exportPDF('Economics_Report', 'res-pre')">Export PDF</button>
-            </div>
-            <div id="res-pre" class="res-box"></div>
-        </div>
-    </div>
-
-    <!-- PROCUREMENT MODULE -->
-    <div id="procure" class="module">
-        <div class="calc-card">
-            <h2>Global Hardware Procurement Terminal</h2>
-            <p>Direct links to industrial equipment and instrumentation suppliers.</p>
-            <div id="procure-list" style="display: grid; gap: 10px; margin-top: 20px;">
-                <a href="https://www.amazon.com/s?k=Industrial+Mixing+Tank" target="_blank" class="amazon-link">🛒 Mixing Tanks & Agitators</a>
-                <a href="https://www.amazon.com/s?k=High+Precision+Pressure+Transducer" target="_blank" class="amazon-link">🛒 Pressure Transmitters</a>
-                <a href="https://www.amazon.com/s?k=Industrial+Shell+Tube+Heat+Exchanger" target="_blank" class="amazon-link">🛒 Heat Exchanger Units</a>
-                <a href="https://www.amazon.com/s?k=PID+Process+Controller" target="_blank" class="amazon-link">🛒 PID Controllers</a>
-                <a href="https://www.amazon.com/s?k=Ultrasonic+Flowmeter" target="_blank" class="amazon-link">🛒 Flow Measurement</a>
-                <a href="https://www.amazon.com/s?k=Stainless+Steel+Reactor+Vessel" target="_blank" class="amazon-link">🛒 Reactor Vessels</a>
-                <a href="https://www.amazon.com/s?k=Industrial+Safety+Valve" target="_blank" class="amazon-link">🛒 Safety Relief Valves</a>
-                <a href="https://www.amazon.com/s?k=Chemical+Pump+Centrifugal" target="_blank" class="amazon-link">🛒 Process Pumps</a>
-            </div>
-        </div>
-    </div>
-
+    <div id="branchModulesContainer"></div>
 </div>
 
 <script>
-    let charts = {};
-    
-    const dbData = {
-        water: { a: 8.07, b: 1730, c: 233, sg: 1.0, item: "Water+Flowmeter" },
-        ethanol: { a: 8.04, b: 1554, c: 222, sg: 0.78, item: "Ethanol+Sensor" },
-        benzene: { a: 6.90, b: 1211, c: 220, sg: 0.87, item: "Benzene+Vapor+Detector" },
-        acetone: { a: 7.02, b: 1161, c: 224, sg: 0.79, item: "Acetone+Analyzer" }
-    };
+// PART 1: Core Functions & Storage
+const storage = {
+    save: (key, data) => localStorage.setItem(key, JSON.stringify(data)),
+    load: (key) => JSON.parse(localStorage.getItem(key) || 'null'),
+    remove: (key) => localStorage.removeItem(key)
+};
 
-    function switchTab(id) {
-        document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        event.target.classList.add('active');
-    }
+let charts = {};
 
-    function syncDB() {
-        const c = document.getElementById('chem_select').value;
-        const d = dbData[c];
-        document.getElementById('th_a').value = d.a;
-        document.getElementById('th_b').value = d.b;
-        document.getElementById('th_c').value = d.c;
-        document.getElementById('p_sg').value = d.sg;
-        document.getElementById('db-msg').innerHTML = `<strong>✓ Synchronized:</strong> ${c.toUpperCase()} thermodynamic properties loaded.`;
-    }
+function updateClock() {
+    document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+}
+setInterval(updateClock, 1000);
+updateClock();
 
-    function display(id, msg, hardware) {
-        const el = document.getElementById(id);
-        el.style.display = 'block';
-        el.innerHTML = `<strong>Results:</strong><br>${msg}<br><a href="https://www.amazon.com/s?k=${hardware}" target="_blank" class="amazon-link">🛒 ${hardware.replace(/\+/g, ' ')}</a>`;
-    }
-
-    function runMB() {
-        const m1 = parseFloat(document.getElementById('mb_m1').value);
-        const x1 = parseFloat(document.getElementById('mb_x1').value) / 100;
-        const m2 = parseFloat(document.getElementById('mb_m2').value);
-        const x2 = parseFloat(document.getElementById('mb_x2').value) / 100;
-        const m3 = m1 + m2;
-        const x3 = ((m1 * x1) + (m2 * x2)) / m3;
-        display('res-mb', 
-            `Total Flow: ${m3.toFixed(2)} kg/h<br>Exit Concentration: ${(x3 * 100).toFixed(2)}%<br>Component Flow: ${(m3 * x3).toFixed(2)} kg/h`, 
-            'Industrial+Inline+Mixer');
-    }
-
-    function runMatlab() {
-        const c0 = parseFloat(document.getElementById('mat_c0').value);
-        const k = parseFloat(document.getElementById('mat_k').value);
-        const timePoints = Array.from({length: 21}, (_, i) => i);
-        const concentrations = timePoints.map(t => c0 * Math.exp(-k * t));
-        
-        if(charts.mat) charts.mat.destroy();
-        charts.mat = new Chart(document.getElementById('matChart'), {
-            type: 'line',
-            data: {
-                labels: timePoints,
-                datasets: [{
-                    label: 'Concentration [C]',
-                    data: concentrations,
-                    borderColor: '#00d1b2',
-                    backgroundColor: 'rgba(0, 209, 178, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: true },
-                    title: { display: true, text: 'First-Order Decay' }
-                },
-                scales: {
-                    x: { title: { display: true, text: 'Time (s)' } },
-                    y: { title: { display: true, text: 'Concentration' } }
-                }
-            }
-        });
-        
-        display('res-mat',
-            `Initial: ${c0.toFixed(3)}<br>Final: ${concentrations[20].toFixed(3)}<br>Half-life: ${(Math.log(2) / k).toFixed(2)} s`,
-            'Chemical+Kinetics+Textbook');
-    }
-
-    function runPetro() {
-        const sg = parseFloat(document.getElementById('p_sg').value);
-        const api = (141.5 / sg) - 131.5;
-        let grade = api > 45 ? 'Very Light' : api > 31 ? 'Light' : api > 22 ? 'Medium' : api > 10 ? 'Heavy' : 'Extra Heavy';
-        display('res-p', `API Gravity: ${api.toFixed(2)}°<br>Classification: ${grade} Crude`, 'Petroleum+Hydrometer+Kit');
-    }
-
-    function runThermo() {
-        const a = parseFloat(document.getElementById('th_a').value);
-        const b = parseFloat(document.getElementById('th_b').value);
-        const c = parseFloat(document.getElementById('th_c').value);
-        const t = parseFloat(document.getElementById('th_t').value);
-        const p = Math.pow(10, a - (b / (t + c)));
-        display('res-th', `Vapor Pressure: ${p.toFixed(2)} mmHg<br>Temperature: ${t}°C`, 'Digital+Pressure+Gauge');
-    }
-
-    function runCRE() {
-        const k = parseFloat(document.getElementById('cre_k').value);
-        const x = parseFloat(document.getElementById('cre_x').value);
-        const vol = (50 * x) / (k * (1 - x));
-        display('res-cre', `CSTR Volume: ${vol.toFixed(2)} L<br>Conversion: ${(x * 100).toFixed(1)}%`, 'Stainless+Steel+Reactor');
-    }
-
-    function runMass() {
-        const alpha = parseFloat(document.getElementById('ms_a').value);
-        const x = parseFloat(document.getElementById('ms_x').value);
-        const y = (alpha * x) / (1 + (alpha - 1) * x);
-        display('res-ms', `Vapor Fraction (y): ${y.toFixed(4)}<br>Liquid Fraction (x): ${x.toFixed(4)}`, 'Distillation+Column+Packing');
-    }
-
-    function runHeat() {
-        const thi = parseFloat(document.getElementById('h_thi').value);
-        const tho = parseFloat(document.getElementById('h_tho').value);
-        const tci = parseFloat(document.getElementById('h_tci').value);
-        const tco = parseFloat(document.getElementById('h_tco').value);
-        const dt1 = thi - tco;
-        const dt2 = tho - tci;
-        const lmtd = (dt1 - dt2) / Math.log(dt1 / dt2);
-        display('res-heat', `LMTD: ${lmtd.toFixed(2)} °C<br>ΔT₁: ${dt1.toFixed(2)}°C | ΔT₂: ${dt2.toFixed(2)}°C`, 'Shell+Tube+Heat+Exchanger');
-    }
-
-    function runFluid() {
-        const L = parseFloat(document.getElementById('f_l').value);
-        const D = parseFloat(document.getElementById('f_d').value);
-        const v = parseFloat(document.getElementById('f_v').value);
-        const hL = 0.02 * (L / D) * (Math.pow(v, 2) / 19.62);
-        display('res-fluid', `Head Loss: ${hL.toFixed(2)} m<br>Pressure Drop: ${(hL * 9810).toFixed(0)} Pa`, 'Ultrasonic+Flowmeter');
-    }
-
-    function runPC() {
-        const kp = parseFloat(document.getElementById('pc_kp').value);
-        const tau = parseFloat(document.getElementById('pc_tau').value);
-        const timePoints = Array.from({length: 25}, (_, i) => i * 0.5);
-        const response = timePoints.map(t => kp * (1 - Math.exp(-t / tau)));
-        
-        if(charts.pc) charts.pc.destroy();
-        charts.pc = new Chart(document.getElementById('pcChart'), {
-            type: 'line',
-            data: {
-                labels: timePoints,
-                datasets: [{
-                    label: 'System Response',
-                    data: response,
-                    borderColor: '#ff9900',
-                    backgroundColor: 'rgba(255, 153, 0, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { title: { display: true, text: 'Step Response' } },
-                scales: {
-                    x: { title: { display: true, text: 'Time (s)' } },
-                    y: { title: { display: true, text: 'Output' } }
-                }
-            }
-        });
-        
-        display('res-pc', `Gain: ${kp.toFixed(2)}<br>Time Constant: ${tau.toFixed(2)} s<br>Settling: ${(4 * tau).toFixed(2)} s`, 'PID+Controller');
-    }
-
-    function runHZ() {
-        const scenarios = {
-            'MORE Pressure': { risk: 'High', cause: 'Blocked outlet, runaway reaction', safeguard: 'Pressure relief valve', hw: 'Pressure+Relief+Valve' },
-            'LESS Flow': { risk: 'Medium', cause: 'Pump failure, valve closure', safeguard: 'Low-flow alarm', hw: 'Flow+Switch+Alarm' },
-            'HIGHER Temperature': { risk: 'High', cause: 'Cooling failure', safeguard: 'High-temp interlock', hw: 'Temperature+Safety+Switch' },
-            'REVERSE Flow': { risk: 'Medium', cause: 'Pressure differential', safeguard: 'Check valve', hw: 'Industrial+Check+Valve' }
-        };
-        const s = scenarios[document.getElementById('hz_g').value];
-        display('res-hz', `Risk: ${s.risk}<br>Cause: ${s.cause}<br>Safeguard: ${s.safeguard}`, s.hw);
-    }
-
-    function runEcon() {
-        const capex = parseFloat(document.getElementById('e_cap').value);
-        const revenue = parseFloat(document.getElementById('e_rev').value) || capex * 0.25;
-        const roi = (revenue / capex) * 100;
-        display('res-pre', `Investment: $${capex.toLocaleString()}<br>Annual Revenue: $${revenue.toLocaleString()}<br>ROI: ${roi.toFixed(2)}%<br>Payback: ${(capex/revenue).toFixed(1)} years`, 'Project+Management+Book');
-    }
-
-    function exportPDF(title, resultId) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFontSize(20);
-        doc.setTextColor(0, 209, 178);
-        doc.text('ChemEFlow Engineering Report', 20, 20);
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text(title.replace(/_/g, ' '), 20, 35);
-        doc.setFontSize(12);
-        const resultText = document.getElementById(resultId).innerText.split('🛒')[0];
-        const lines = doc.splitTextToSize(resultText, 170);
-        doc.text(lines, 20, 50);
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 280);
-        doc.save(`${title}.pdf`);
-    }
-
-    window.addEventListener('load', () => {
-        syncDB();
+function saveToHistory(module, inputs, result) {
+    const history = storage.load('history') || [];
+    history.unshift({
+        module,
+        inputs,
+        result,
+        timestamp: new Date().toISOString(),
+        id: Date.now()
     });
+    storage.save('history', history.slice(0, 50));
+    showToast('Calculation saved to history!');
+}
+
+function loadHistory() {
+    const history = storage.load('history') || [];
+    const list = document.getElementById('historyList');
+    list.innerHTML = history.length ? history.map(h => 
+        `<div class="history-item">
+            <strong>${h.module}</strong><br>
+            <small>${new Date(h.timestamp).toLocaleString()}</small><br>
+            <small style="color:var(--primary)">${h.result}</small>
+        </div>`
+    ).join('') : '<p style="text-align:center; color:#94a3b8;">No history yet</p>';
+}
+
+function clearHistory() {
+    if(confirm('Clear all calculation history?')) {
+        storage.remove('history');
+        showToast('History cleared!');
+        closeModal('historyModal');
+    }
+}
+
+function changeTheme(theme) {
+    const body = document.body;
+    body.className = body.className.replace(/theme-\w+/g, '').replace(/dark-theme/g, '');
+    if (theme !== 'default') body.classList.add(`theme-${theme}`);
+    storage.save('theme', theme);
+    showToast(`Theme changed to ${theme}!`);
+}
+
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+
+function showToast(msg) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+function switchTab(id) {
+    document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    const targetModule = document.getElementById(id);
+    if(targetModule) {
+        targetModule.classList.add('active');
+    }
+    if(event && event.target) event.target.classList.add('active');
+}
+
+function searchModules() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.style.display = link.textContent.toLowerCase().includes(query) ? 'flex' : 'none';
+    });
+    document.querySelectorAll('.module-card').forEach(card => {
+        card.style.display = card.textContent.toLowerCase().includes(query) ? 'block' : 'none';
+    });
+}
+
+function quickConvert() {
+    const val = parseFloat(document.getElementById('conv_in').value) || 0;
+    const type = document.getElementById('conv_type').value;
+    let res = "";
+    
+    switch(type) {
+        case 'pressure': res = `${(val * 14.5038).toFixed(2)} PSI`; break;
+        case 'power': res = `${(val * 1.341).toFixed(2)} HP`; break;
+        case 'force': res = `${(val * 224.8).toFixed(1)} lbf`; break;
+        case 'current': res = `${(val * 1000).toFixed(0)} mA`; break;
+        case 'temp': res = `${(val * 9/5 + 32).toFixed(1)} °F`; break;
+    }
+    
+    document.getElementById('conv_out').innerText = res || 'Result will show here...';
+}
+
+function viewStats() {
+    const totalCalcs = (storage.load('history') || []).length;
+    alert(`📊 ChemEFlow Statistics\n\nTotal Calculations: ${totalCalcs}\nModules Available: 90+\nVersion: v6.0.0-PRO\nStatus: All Systems Operational`);
+}
+
+// PART 2: Module Definitions
+const engineeringModules = {
+    chemical: [
+        {id: 'mat_balance', name: 'Material Balance', desc: 'Mass conservation in mixing', formula: 'm₃ = m₁ + m₂'},
+        {id: 'antoine', name: 'Antoine Equation', desc: 'Vapor pressure calculation', formula: 'log P = A - B/(T+C)'},
+        {id: 'cstr', name: 'CSTR Design', desc: 'Reactor sizing', formula: 'V = F₀X/(k(1-X))'},
+        {id: 'heat_exchanger', name: 'Heat Exchanger LMTD', desc: 'Temperature difference', formula: 'LMTD = (ΔT₁-ΔT₂)/ln(ΔT₁/ΔT₂)'},
+        {id: 'reynolds', name: 'Reynolds Number', desc: 'Flow regime', formula: 'Re = ρVD/μ'},
+        {id: 'distillation', name: 'Distillation VLE', desc: 'Vapor-liquid equilibrium', formula: 'y = αx/(1+(α-1)x)'},
+        {id: 'pump_power', name: 'Pump Power', desc: 'Required power', formula: 'P = ρgQH/η'},
+        {id: 'absorption', name: 'Absorption Tower', desc: 'Gas absorption', formula: 'N = ln[(y₁-mx₂)/(y₂-mx₂)]'},
+        {id: 'crystallization', name: 'Crystallization', desc: 'Crystal yield', formula: 'Y = (C₁-C₂)/C₁×100'},
+        {id: 'filtration', name: 'Filtration Rate', desc: 'Constant pressure', formula: 'V² + 2VV₀ = K(t+t₀)'}
+    ],
+    mechanical: [
+        {id: 'stress_strain', name: 'Stress-Strain', desc: 'Material deformation', formula: 'σ = Eε'},
+        {id: 'bending_moment', name: 'Bending Moment', desc: 'Beam analysis', formula: 'M = σI/y'},
+        {id: 'deflection', name: 'Beam Deflection', desc: 'Cantilever beam', formula: 'δ = PL³/(3EI)'},
+        {id: 'torsion', name: 'Torsional Stress', desc: 'Shaft torsion', formula: 'τ = Tr/J'},
+        {id: 'critical_speed', name: 'Critical Speed', desc: 'Shaft critical speed', formula: 'Nc = 946.4√(g/δ)'},
+        {id: 'gear_ratio', name: 'Gear Ratio', desc: 'Speed transmission', formula: 'VR = N₁/N₂'},
+        {id: 'brake_power', name: 'Brake Power', desc: 'Engine power', formula: 'BP = 2πNT/60'},
+        {id: 'thermal_stress', name: 'Thermal Stress', desc: 'Temperature stress', formula: 'σ = EαΔT'},
+        {id: 'spring_stiffness', name: 'Spring Stiffness', desc: 'Helical spring', formula: 'k = Gd⁴/(8D³n)'},
+        {id: 'flywheel', name: 'Flywheel Energy', desc: 'Energy storage', formula: 'E = ½Iω²'},
+        {id: 'carnot', name: 'Carnot Efficiency', desc: 'Maximum efficiency', formula: 'η = 1 - T₂/T₁'},
+        {id: 'rankine', name: 'Rankine Cycle', desc: 'Steam cycle', formula: 'η = (h₁-h₂)/(h₁-h₃)'},
+        {id: 'otto_cycle', name: 'Otto Cycle', desc: 'SI engine', formula: 'η = 1 - 1/r^(γ-1)'},
+        {id: 'diesel_cycle', name: 'Diesel Cycle', desc: 'CI engine', formula: 'η = 1 - [1/r^(γ-1)][(β^γ-1)/γ(β-1)]'},
+        {id: 'compressor_work', name: 'Compressor Work', desc: 'Compression work', formula: 'W = [γ/(γ-1)]P₁V₁[(P₂/P₁)^((γ-1)/γ)-1]'},
+        {id: 'turbine_work', name: 'Turbine Work', desc: 'Expansion work', formula: 'W = ṁcp(T₁-T₂)'},
+        {id: 'refrigeration', name: 'COP Refrigeration', desc: 'Coefficient of performance', formula: 'COP = Q₂/W'},
+        {id: 'bearing_life', name: 'Bearing Life', desc: 'L10 bearing life', formula: 'L₁₀ = (C/P)³ × 10⁶'},
+        {id: 'belt_tension', name: 'Belt Drive', desc: 'Belt tension ratio', formula: 'T₁/T₂ = e^(μθ)'},
+        {id: 'vibration_freq', name: 'Natural Frequency', desc: 'System frequency', formula: 'fn = (1/2π)√(k/m)'}
+    ],
+    civil: [
+        {id: 'beam_reaction', name: 'Beam Reactions', desc: 'Support reactions', formula: 'ΣF = 0, ΣM = 0'},
+        {id: 'shear_force', name: 'Shear Force', desc: 'Maximum shear', formula: 'Vmax = wL/2'},
+        {id: 'moment_capacity', name: 'Moment Capacity', desc: 'Beam capacity', formula: 'M = fyZ'},
+        {id: 'column_buckling', name: 'Column Buckling', desc: 'Euler buckling', formula: 'Pcr = π²EI/(KL)²'},
+        {id: 'concrete_mix', name: 'Concrete Mix Design', desc: 'Mix proportions', formula: 'W/C ratio'},
+        {id: 'steel_design', name: 'Steel Beam Design', desc: 'Section modulus', formula: 'Z = M/fy'},
+        {id: 'footing_design', name: 'Footing Design', desc: 'Bearing capacity', formula: 'qult = cNc + γDNq + 0.5γBNγ'},
+        {id: 'retaining_wall', name: 'Retaining Wall', desc: 'Lateral pressure', formula: 'Pa = ½γH²Ka'},
+        {id: 'slab_design', name: 'Slab Design', desc: 'Two-way slab', formula: 'M = αwL²'},
+        {id: 'truss_analysis', name: 'Truss Analysis', desc: 'Member forces', formula: 'Method of joints'},
+        {id: 'settlement', name: 'Settlement Calculation', desc: 'Consolidation', formula: 'S = (Cc/(1+e₀))H log(σ₂/σ₁)'},
+        {id: 'slope_stability', name: 'Slope Stability', desc: 'Factor of safety', formula: 'FS = τf/τm'},
+        {id: 'seepage', name: 'Seepage Flow', desc: 'Darcy law', formula: 'q = kiA'},
+        {id: 'CBR', name: 'CBR Test', desc: 'Pavement strength', formula: 'CBR = (Test/Standard)×100'},
+        {id: 'manning', name: 'Manning Equation', desc: 'Open channel', formula: 'Q = (1/n)AR^(2/3)S^(1/2)'},
+        {id: 'weir_flow', name: 'Weir Flow', desc: 'Flow over weir', formula: 'Q = CLH^(3/2)'},
+        {id: 'pipe_flow', name: 'Pipe Flow', desc: 'Hazen-Williams', formula: 'V = 0.85CR^(0.63)S^(0.54)'},
+        {id: 'water_demand', name: 'Water Demand', desc: 'Population needs', formula: 'Q = P × q'},
+        {id: 'BOD', name: 'BOD Calculation', desc: 'Oxygen demand', formula: 'BOD = (D₁-D₂)/P'},
+        {id: 'traffic_volume', name: 'Traffic Volume', desc: 'AADT calculation', formula: 'AADT = Σ(Volume×Factor)/365'}
+    ],
+    electrical: [
+        {id: 'ohms_law', name: 'Ohm\'s Law', desc: 'Voltage-current', formula: 'V = IR'},
+        {id: 'power_calc', name: 'Power Calculation', desc: 'Electrical power', formula: 'P = VI'},
+        {id: 'series_resistance', name: 'Series Resistance', desc: 'Total resistance', formula: 'Rtotal = R₁+R₂+R₃'},
+        {id: 'parallel_resistance', name: 'Parallel Resistance', desc: 'Equivalent R', formula: '1/Rtotal = 1/R₁+1/R₂'},
+        {id: 'capacitor_series', name: 'Capacitors in Series', desc: 'Total capacitance', formula: '1/Ctotal = 1/C₁+1/C₂'},
+        {id: 'inductor_series', name: 'Inductors in Series', desc: 'Total inductance', formula: 'Ltotal = L₁+L₂+L₃'},
+        {id: 'rc_time', name: 'RC Time Constant', desc: 'Charging time', formula: 'τ = RC'},
+        {id: 'rl_time', name: 'RL Time Constant', desc: 'Current rise', formula: 'τ = L/R'},
+        {id: 'resonance', name: 'Resonant Frequency', desc: 'LC resonance', formula: 'f₀ = 1/(2π√LC)'},
+        {id: 'impedance', name: 'AC Impedance', desc: 'Complex impedance', formula: 'Z = √(R²+(XL-XC)²)'},
+        {id: 'power_factor', name: 'Power Factor', desc: 'Real to apparent', formula: 'PF = cos φ'},
+        {id: 'three_phase', name: 'Three Phase Power', desc: 'Balanced 3-phase', formula: 'P = √3 VL IL cos φ'},
+        {id: 'transformer', name: 'Transformer Ratio', desc: 'Voltage transformation', formula: 'V₁/V₂ = N₁/N₂'},
+        {id: 'motor_torque', name: 'Motor Torque', desc: 'DC motor torque', formula: 'T = KΦIa'},
+        {id: 'motor_speed', name: 'Motor Speed', desc: 'Back EMF', formula: 'N = (V-IaRa)/(KΦ)'},
+        {id: 'efficiency', name: 'Efficiency', desc: 'Machine efficiency', formula: 'η = Pout/Pin×100%'},
+        {id: 'voltage_divider', name: 'Voltage Divider', desc: 'Output voltage', formula: 'Vout = Vin×R₂/(R₁+R₂)'},
+        {id: 'current_divider', name: 'Current Divider', desc: 'Branch current', formula: 'I₁ = Itotal×R₂/(R₁+R₂)'},
+        {id: 'wheatstone', name: 'Wheatstone Bridge', desc: 'Balance condition', formula: 'R₁/R₂ = R₃/R₄'},
+        {id: 'line_loss', name: 'Transmission Loss', desc: 'Power loss', formula: 'Ploss = I²R'},
+        {id: 'fault_current', name: 'Fault Current', desc: 'Short circuit', formula: 'If = V/Z'},
+        {id: 'relay_setting', name: 'Relay Setting', desc: 'Protection', formula: 'PSM = Ifault/Ipickup'},
+        {id: 'regulation', name: 'Voltage Regulation', desc: 'Voltage drop', formula: 'VR = (Vnl-Vfl)/Vfl×100%'},
+        {id: 'skin_depth', name: 'Skin Depth', desc: 'AC conductor', formula: 'δ = √(2/(ωμσ))'},
+        {id: 'antenna_gain', name: 'Antenna Gain', desc: 'Directivity gain', formula: 'G = 4πA/λ²'}
+    ],
+    industrial: [
+        {id: 'eoq', name: 'Economic Order Quantity', desc: 'Optimal order', formula: 'EOQ = √(2DS/H)'},
+        {id: 'reorder_point', name: 'Reorder Point', desc: 'Inventory level', formula: 'ROP = d×L+SS'},
+        {id: 'safety_stock', name: 'Safety Stock', desc: 'Buffer inventory', formula: 'SS = Z×σ×√L'},
+        {id: 'abc_analysis', name: 'ABC Analysis', desc: 'Inventory classification', formula: 'Cumulative %'},
+        {id: 'line_balancing', name: 'Line Balancing', desc: 'Assembly efficiency', formula: 'E = Σt/(n×C)'},
+        {id: 'takt_time', name: 'Takt Time', desc: 'Production rate', formula: 'Takt = Available/Demand'},
+        {id: 'oee', name: 'Overall Equipment Effectiveness', desc: 'Machine efficiency', formula: 'OEE = A×P×Q'},
+        {id: 'learning_curve', name: 'Learning Curve', desc: 'Time reduction', formula: 'Tn = T₁×n^b'},
+        {id: 'breakeven', name: 'Break-Even Analysis', desc: 'Profit point', formula: 'BEP = FC/(P-VC)'},
+        {id: 'productivity', name: 'Productivity Index', desc: 'Output efficiency', formula: 'PI = Output/Input'},
+        {id: 'cpk', name: 'Process Capability Cpk', desc: 'Quality index', formula: 'Cpk = min[(USL-μ)/3σ,(μ-LSL)/3σ]'},
+        {id: 'six_sigma', name: 'Six Sigma DPMO', desc: 'Defects per million', formula: 'DPMO = (Defects/Opportunities)×10⁶'},
+        {id: 'mtbf', name: 'MTBF', desc: 'Mean time between failures', formula: 'MTBF = Total Time/# Failures'},
+        {id: 'mttr', name: 'MTTR', desc: 'Mean time to repair', formula: 'MTTR = Total Repair/# Repairs'},
+        {id: 'availability', name: 'System Availability', desc: 'Uptime percentage', formula: 'A = MTBF/(MTBF+MTTR)'}
+    ]
+};
+
+// PART 3: Show Branch Modules
+function showBranchModules(branch) {
+    const container = document.getElementById('branchModulesContainer');
+    const modules = engineeringModules[branch] || [];
+    
+    let branchNames = {
+        chemical: '🧪 Chemical Engineering',
+        mechanical: '⚙️ Mechanical Engineering',
+        civil: '🏗️ Civil Engineering',
+        electrical: '⚡ Electrical Engineering',
+        industrial: '🏭 Industrial Engineering'
+    };
+    
+    let html = `
+        <div class="module active" id="branch_${branch}">
+            <div class="calc-card">
+                <h2>${branchNames[branch]}</h2>
+                <p>Select a module to start calculating</p>
+                <div class="module-grid">
+    `;
+    
+    modules.forEach(mod => {
+        html += `
+            <div class="module-card" onclick="openCalculator('${branch}', '${mod.id}')">
+                <h3>${mod.name}</h3>
+                <p>${mod.desc}</p>
+                <small>${mod.formula}</small>
+            </div>
+        `;
+    });
+    
+    html += `
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('welcome').classList.remove('active');
+    container.innerHTML = html;
+    showToast(`Switched to ${branchNames[branch]}`);
+}
+
+// PART 4: Open Calculator
+function openCalculator(branch, calcId) {
+    const container = document.getElementById('branchModulesContainer');
+    const calc = engineeringModules[branch].find(m => m.id === calcId);
+    
+    if(!calc) {
+        showToast('Calculator not found!');
+        return;
+    }
+    
+    let html = `
+        <div class="module active" id="calc_${calcId}">
+            <div class="calc-card">
+                <button onclick="showBranchModules('${branch}')" style="margin-bottom: 20px; padding: 8px 16px; background: var(--dark); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">← Back to ${branch.charAt(0).toUpperCase() + branch.slice(1)} Engineering</button>
+                <h2>${calc.name}</h2>
+                <p>${calc.desc}</p>
+                <p style="color: var(--primary); font-weight: 700; margin: 10px 0;">Formula: ${calc.formula}</p>
+                
+                <div id="calc_inputs_${calcId}">
+                    ${getCalculatorInputs(calcId)}
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn-calc" onclick="runCalculation('${calcId}')">Calculate</button>
+                    <button class="btn-pdf" onclick="exportCalcPDF('${calc.name}', 'result_${calcId}')">PDF</button>
+                    <button class="btn-pdf" onclick="exportCalcExcel('${calc.name}')">Excel</button>
+                    <button class="btn-pdf" onclick="shareCalc('${calc.name}')">Share</button>
+                </div>
+                
+                <div id="result_${calcId}" class="res-box"></div>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+// PART 5: Get Calculator Inputs - ALL CALCULATORS
+function getCalculatorInputs(calcId) {
+    const inputs = {
+        // ============ CHEMICAL ENGINEERING ============
+        mat_balance: `
+            <div class="input-grid">
+                <div><label>Stream 1 Flow (kg/h)</label><input type="number" id="inp_1" value="100"></div>
+                <div><label>Stream 1 Conc (%)</label><input type="number" id="inp_2" value="10"></div>
+                <div><label>Stream 2 Flow (kg/h)</label><input type="number" id="inp_3" value="150"></div>
+                <div><label>Stream 2 Conc (%)</label><input type="number" id="inp_4" value="50"></div>
+            </div>`,
+        antoine: `
+            <div class="input-grid">
+                <div><label>Constant A</label><input type="number" id="inp_1" value="8.07"></div>
+                <div><label>Constant B</label><input type="number" id="inp_2" value="1730"></div>
+                <div><label>Constant C</label><input type="number" id="inp_3" value="233"></div>
+                <div><label>Temperature (°C)</label><input type="number" id="inp_4" value="100"></div>
+            </div>`,
+        cstr: `
+            <div class="input-grid">
+                <div><label>Rate Constant k (s⁻¹)</label><input type="number" id="inp_1" value="0.2"></div>
+                <div><label>Conversion X (0-1)</label><input type="number" id="inp_2" value="0.8" step="0.01"></div>
+                <div><label>Feed Flow F₀ (L/s)</label><input type="number" id="inp_3" value="50"></div>
+            </div>`,
+        heat_exchanger: `
+            <div class="input-grid">
+                <div><label>Hot Inlet T (°C)</label><input type="number" id="inp_1" value="120"></div>
+                <div><label>Hot Outlet T (°C)</label><input type="number" id="inp_2" value="80"></div>
+                <div><label>Cold Inlet T (°C)</label><input type="number" id="inp_3" value="30"></div>
+                <div><label>Cold Outlet T (°C)</label><input type="number" id="inp_4" value="60"></div>
+            </div>`,
+        reynolds: `
+            <div class="input-grid">
+                <div><label>Density ρ (kg/m³)</label><input type="number" id="inp_1" value="1000"></div>
+                <div><label>Velocity V (m/s)</label><input type="number" id="inp_2" value="2"></div>
+                <div><label>Diameter D (m)</label><input type="number" id="inp_3" value="0.1"></div>
+                <div><label>Viscosity μ (Pa·s)</label><input type="number" id="inp_4" value="0.001" step="0.0001"></div>
+            </div>`,
+        distillation: `
+            <div class="input-grid">
+                <div><label>Relative Volatility α</label><input type="number" id="inp_1" value="2.5"></div>
+                <div><label>Liquid Mole Fraction x</label><input type="number" id="inp_2" value="0.4" step="0.01"></div>
+            </div>`,
+        pump_power: `
+            <div class="input-grid">
+                <div><label>Density ρ (kg/m³)</label><input type="number" id="inp_1" value="1000"></div>
+                <div><label>Flow Rate Q (m³/s)</label><input type="number" id="inp_2" value="0.05"></div>
+                <div><label>Head H (m)</label><input type="number" id="inp_3" value="20"></div>
+                <div><label>Efficiency η (%)</label><input type="number" id="inp_4" value="75"></div>
+            </div>`,
+        absorption: `
+            <div class="input-grid">
+                <div><label>Inlet Gas Conc y₁</label><input type="number" id="inp_1" value="0.05" step="0.001"></div>
+                <div><label>Outlet Gas Conc y₂</label><input type="number" id="inp_2" value="0.005" step="0.001"></div>
+                <div><label>Liquid Conc x₂</label><input type="number" id="inp_3" value="0.001" step="0.0001"></div>
+                <div><label>Equilibrium Slope m</label><input type="number" id="inp_4" value="1.5"></div>
+            </div>`,
+        crystallization: `
+            <div class="input-grid">
+                <div><label>Initial Conc C₁ (g/L)</label><input type="number" id="inp_1" value="200"></div>
+                <div><label>Final Conc C₂ (g/L)</label><input type="number" id="inp_2" value="50"></div>
+                <div><label>Solution Volume (L)</label><input type="number" id="inp_3" value="100"></div>
+            </div>`,
+        filtration: `
+            <div class="input-grid">
+                <div><label>Filtration Constant K (m⁶)</label><input type="number" id="inp_1" value="0.001" step="0.0001"></div>
+                <div><label>Time t (s)</label><input type="number" id="inp_2" value="600"></div>
+                <div><label>Initial Volume V₀ (m³)</label><input type="number" id="inp_3" value="0.1"></div>
+            </div>`,
+            
+        // ============ MECHANICAL ENGINEERING ============
+        stress_strain: `
+            <div class="input-grid">
+                <div><label>Young's Modulus E (GPa)</label><input type="number" id="inp_1" value="200"></div>
+                <div><label>Strain ε</label><input type="number" id="inp_2" value="0.002" step="0.0001"></div>
+            </div>`,
+        bending_moment: `
+            <div class="input-grid">
+                <div><label>Stress σ (MPa)</label><input type="number" id="inp_1" value="150"></div>
+                <div><label>Moment of Inertia I (m⁴)</label><input type="number" id="inp_2" value="0.0001" step="0.00001"></div>
+                <div><label>Distance y (m)</label><input type="number" id="inp_3" value="0.1"></div>
+            </div>`,
+        deflection: `
+            <div class="input-grid">
+                <div><label>Load P (N)</label><input type="number" id="inp_1" value="1000"></div>
+                <div><label>Length L (m)</label><input type="number" id="inp_2" value="2"></div>
+                <div><label>Young's Modulus E (GPa)</label><input type="number" id="inp_3" value="200"></div>
+                <div><label>Moment of Inertia I (m⁴)</label><input type="number" id="inp_4" value="0.0001" step="0.00001"></div>
+            </div>`,
+        torsion: `
+            <div class="input-grid">
+                <div><label>Torque T (N·m)</label><input type="number" id="inp_1" value="500"></div>
+                <div><label>Radius r (m)</label><input type="number" id="inp_2" value="0.05"></div>
+                <div><label>Polar Moment J (m⁴)</label><input type="number" id="inp_3" value="0.0001" step="0.00001"></div>
+            </div>`,
+        critical_speed: `
+            <div class="input-grid">
+                <div><label>Static Deflection δ (mm)</label><input type="number" id="inp_1" value="5"></div>
+                <div><label>Gravity g (m/s²)</label><input type="number" id="inp_2" value="9.81"></div>
+            </div>`,
+        gear_ratio: `
+            <div class="input-grid">
+                <div><label>Driver Teeth N₁</label><input type="number" id="inp_1" value="20"></div>
+                <div><label>Driven Teeth N₂</label><input type="number" id="inp_2" value="60"></div>
+            </div>`,
+        brake_power: `
+            <div class="input-grid">
+                <div><label>Speed N (RPM)</label><input type="number" id="inp_1" value="1500"></div>
+                <div><label>Torque T (N·m)</label><input type="number" id="inp_2" value="100"></div>
+            </div>`,
+        thermal_stress: `
+            <div class="input-grid">
+                <div><label>Young's Modulus E (GPa)</label><input type="number" id="inp_1" value="200"></div>
+                <div><label>Coefficient α (10⁻⁶/°C)</label><input type="number" id="inp_2" value="12"></div>
+                <div><label>Temp Change ΔT (°C)</label><input type="number" id="inp_3" value="50"></div>
+            </div>`,
+        spring_stiffness: `
+            <div class="input-grid">
+                <div><label>Shear Modulus G (GPa)</label><input type="number" id="inp_1" value="80"></div>
+                <div><label>Wire Diameter d (mm)</label><input type="number" id="inp_2" value="5"></div>
+                <div><label>Mean Coil Diameter D (mm)</label><input type="number" id="inp_3" value="50"></div>
+                <div><label>Number of Coils n</label><input type="number" id="inp_4" value="10"></div>
+            </div>`,
+        flywheel: `
+            <div class="input-grid">
+                <div><label>Moment of Inertia I (kg·m²)</label><input type="number" id="inp_1" value="5"></div>
+                <div><label>Angular Velocity ω (rad/s)</label><input type="number" id="inp_2" value="100"></div>
+            </div>`,
+        carnot: `
+            <div class="input-grid">
+                <div><label>Hot Reservoir T₁ (K)</label><input type="number" id="inp_1" value="600"></div>
+                <div><label>Cold Reservoir T₂ (K)</label><input type="number" id="inp_2" value="300"></div>
+            </div>`,
+        rankine: `
+            <div class="input-grid">
+                <div><label>Enthalpy H₁ (kJ/kg)</label><input type="number" id="inp_1" value="3000"></div>
+                <div><label>Enthalpy H₂ (kJ/kg)</label><input type="number" id="inp_2" value="2200"></div>
+            </div>`,
+        otto_cycle: `
+            <div class="input-grid">
+                <div><label>Compression Ratio r</label><input type="number" id="inp_1" value="8"></div>
+                <div><label>Specific Heat Ratio γ</label><input type="number" id="inp_2" value="1.4" step="0.1"></div>
+            </div>`,
+        diesel_cycle: `
+            <div class="input-grid">
+                <div><label>Compression Ratio r</label><input type="number" id="inp_1" value="18"></div>
+                <div><label>Cut-off Ratio β</label><input type="number" id="inp_2" value="2"></div>
+                <div><label>Specific Heat Ratio γ</label><input type="number" id="inp_3" value="1.4" step="0.1"></div>
+            </div>`,
+        compressor_work: `
+            <div class="input-grid">
+                <div><label>Inlet Pressure P₁ (bar)</label><input type="number" id="inp_1" value="1"></div>
+                <div><label>Outlet Pressure P₂ (bar)</label><input type="number" id="inp_2" value="5"></div>
+                <div><label>Volume V₁ (m³)</label><input type="number" id="inp_3" value="0.1"></div>
+                <div><label>Specific Heat Ratio γ</label><input type="number" id="inp_4" value="1.4" step="0.1"></div>
+            </div>`,
+        turbine_work: `
+            <div class="input-grid">
+                <div><label>Mass Flow ṁ (kg/s)</label><input type="number" id="inp_1" value="10"></div>
+                <div><label>Specific Heat cp (kJ/kg·K)</label><input type="number" id="inp_2" value="1.005"></div>
+                <div><label>Inlet Temp T₁ (K)</label><input type="number" id="inp_3" value="1200"></div>
+                <div><label>Outlet Temp T₂ (K)</label><input type="number" id="inp_4" value="600"></div>
+            </div>`,
+        refrigeration: `
+            <div class="input-grid">
+                <div><label>Heat Extracted Q₂ (kJ)</label><input type="number" id="inp_1" value="1000"></div>
+                <div><label>Work Input W (kJ)</label><input type="number" id="inp_2" value="250"></div>
+            </div>`,
+        bearing_life: `
+            <div class="input-grid">
+                <div><label>Basic Load Rating C (kN)</label><input type="number" id="inp_1" value="50"></div>
+                <div><label>Equivalent Load P (kN)</label><input type="number" id="inp_2" value="10"></div>
+            </div>`,
+        belt_tension: `
+            <div class="input-grid">
+                <div><label>Coefficient of Friction μ</label><input type="number" id="inp_1" value="0.3" step="0.01"></div>
+                <div><label>Angle of Contact θ (rad)</label><input type="number" id="inp_2" value="3.14"></div>
+            </div>`,
+        vibration_freq: `
+            <div class="input-grid">
+                <div><label>Stiffness k (N/m)</label><input type="number" id="inp_1" value="10000"></div>
+                <div><label>Mass m (kg)</label><input type="number" id="inp_2" value="10"></div>
+            </div>`,
+            
+        // ============ CIVIL ENGINEERING ============
+        beam_reaction: `
+            <div class="input-grid">
+                <div><label>Point Load W (kN)</label><input type="number" id="inp_1" value="10"></div>
+                <div><label>Distance from Left a (m)</label><input type="number" id="inp_2" value="2"></div>
+                <div><label>Span Length L (m)</label><input type="number" id="inp_3" value="6"></div>
+            </div>`,
+        shear_force: `
+            <div class="input-grid">
+                <div><label>UDL w (kN/m)</label><input type="number" id="inp_1" value="10"></div>
+                <div><label>Span Length L (m)</label><input type="number" id="inp_2" value="6"></div>
+            </div>`,
+        moment_capacity: `
+            <div class="input-grid">
+                <div><label>Yield Strength fy (MPa)</label><input type="number" id="inp_1" value="250"></div>
+                <div><label>Section Modulus Z (cm³)</label><input type="number" id="inp_2" value="500"></div>
+            </div>`,
+        column_buckling: `
+            <div class="input-grid">
+                <div><label>Young's Modulus E (GPa)</label><input type="number" id="inp_1" value="200"></div>
+                <div><label>Moment of Inertia I (m⁴)</label><input type="number" id="inp_2" value="0.0001" step="0.00001"></div>
+                <div><label>Length L (m)</label><input type="number" id="inp_3" value="4"></div>
+                <div><label>Effective Length Factor K</label><input type="number" id="inp_4" value="1" step="0.1"></div>
+            </div>`,
+        concrete_mix: `
+            <div class="input-grid">
+                <div><label>Cement (kg)</label><input type="number" id="inp_1" value="350"></div>
+                <div><label>Water (kg)</label><input type="number" id="inp_2" value="175"></div>
+                <div><label>Fine Aggregate (kg)</label><input type="number" id="inp_3" value="700"></div>
+                <div><label>Coarse Aggregate (kg)</label><input type="number" id="inp_4" value="1200"></div>
+            </div>`,
+        steel_design: `
+            <div class="input-grid">
+                <div><label>Bending Moment M (kN·m)</label><input type="number" id="inp_1" value="150"></div>
+                <div><label>Yield Strength fy (MPa)</label><input type="number" id="inp_2" value="250"></div>
+            </div>`,
+        footing_design: `
+            <div class="input-grid">
+                <div><label>Cohesion c (kPa)</label><input type="number" id="inp_1" value="20"></div>
+                <div><label>Unit Weight γ (kN/m³)</label><input type="number" id="inp_2" value="18"></div>
+                <div><label>Depth D (m)</label><input type="number" id="inp_3" value="1.5"></div>
+                <div><label>Width B (m)</label><input type="number" id="inp_4" value="2"></div>
+            </div>`,
+        retaining_wall: `
+            <div class="input-grid">
+                <div><label>Unit Weight γ (kN/m³)</label><input type="number" id="inp_1" value="18"></div>
+                <div><label>Height H (m)</label><input type="number" id="inp_2" value="5"></div>
+                <div><label>Friction Angle φ (°)</label><input type="number" id="inp_3" value="30"></div>
+            </div>`,
+        slab_design: `
+            <div class="input-grid">
+                <div><label>Load w (kN/m²)</label><input type="number" id="inp_1" value="5"></div>
+                <div><label>Span Length L (m)</label><input type="number" id="inp_2" value="5"></div>
+                <div><label>Moment Coefficient α</label><input type="number" id="inp_3" value="0.125" step="0.001"></div>
+            </div>`,
+        truss_analysis: `
+            <div class="input-grid">
+                <div><label>Applied Load P (kN)</label><input type="number" id="inp_1" value="10"></div>
+                <div><label>Angle θ (degrees)</label><input type="number" id="inp_2" value="30"></div>
+                <div><label>Member Length L (m)</label><input type="number" id="inp_3" value="4"></div>
+            </div>`,
+        settlement: `
+            <div class="input-grid">
+                <div><label>Compression Index Cc</label><input type="number" id="inp_1" value="0.3"></div>
+                <div><label>Initial Void Ratio e₀</label><input type="number" id="inp_2" value="0.8"></div>
+                <div><label>Layer Thickness H (m)</label><input type="number" id="inp_3" value="5"></div>
+                <div><label>Stress Increase Δσ (kPa)</label><input type="number" id="inp_4" value="50"></div>
+                <div><label>Initial Stress σ₀ (kPa)</label><input type="number" id="inp_5" value="100"></div>
+            </div>`,
+        slope_stability: `
+            <div class="input-grid">
+                <div><label>Soil Cohesion c (kPa)</label><input type="number" id="inp_1" value="20"></div>
+                <div><label>Friction Angle φ (°)</label><input type="number" id="inp_2" value="30"></div>
+                <div><label>Slope Angle β (°)</label><input type="number" id="inp_3" value="25"></div>
+                <div><label>Unit Weight γ (kN/m³)</label><input type="number" id="inp_4" value="18"></div>
+                <div><label>Height H (m)</label><input type="number" id="inp_5" value="10"></div>
+            </div>`,
+        seepage: `
+            <div class="input-grid">
+                <div><label>Permeability k (m/s)</label><input type="number" id="inp_1" value="0.0001" step="0.00001"></div>
+                <div><label>Hydraulic Gradient i</label><input type="number" id="inp_2" value="0.5"></div>
+                <div><label>Area A (m²)</label><input type="number" id="inp_3" value="10"></div>
+            </div>`,
+        CBR: `
+            <div class="input-grid">
+                <div><label>Test Load (kN)</label><input type="number" id="inp_1" value="7"></div>
+                <div><label>Standard Load (kN)</label><input type="number" id="inp_2" value="13.2"></div>
+            </div>`,
+        manning: `
+            <div class="input-grid">
+                <div><label>Manning's n</label><input type="number" id="inp_1" value="0.015" step="0.001"></div>
+                <div><label>Area A (m²)</label><input type="number" id="inp_2" value="10"></div>
+                <div><label>Hydraulic Radius R (m)</label><input type="number" id="inp_3" value="2"></div>
+                <div><label>Slope S</label><input type="number" id="inp_4" value="0.001" step="0.0001"></div>
+            </div>`,
+        weir_flow: `
+            <div class="input-grid">
+                <div><label>Weir Coefficient C</label><input type="number" id="inp_1" value="1.84"></div>
+                <div><label>Weir Length L (m)</label><input type="number" id="inp_2" value="3"></div>
+                <div><label>Head H (m)</label><input type="number" id="inp_3" value="0.5"></div>
+            </div>`,
+        pipe_flow: `
+            <div class="input-grid">
+                <div><label>Hazen-Williams C</label><input type="number" id="inp_1" value="120"></div>
+                <div><label>Hydraulic Radius R (m)</label><input type="number" id="inp_2" value="0.15"></div>
+                <div><label>Slope S</label><input type="number" id="inp_3" value="0.005" step="0.0001"></div>
+            </div>`,
+        water_demand: `
+            <div class="input-grid">
+                <div><label>Population P</label><input type="number" id="inp_1" value="50000"></div>
+                <div><label>Per Capita Demand q (L/day)</label><input type="number" id="inp_2" value="150"></div>
+            </div>`,
+        BOD: `
+            <div class="input-grid">
+                <div><label>Initial DO D₁ (mg/L)</label><input type="number" id="inp_1" value="8"></div>
+                <div><label>Final DO D₂ (mg/L)</label><input type="number" id="inp_2" value="3"></div>
+                <div><label>Dilution Factor P</label><input type="number" id="inp_3" value="0.1"></div>
+            </div>`,
+        traffic_volume: `
+            <div class="input-grid">
+                <div><label>Total Annual Volume</label><input type="number" id="inp_1" value="1000000"></div>
+                <div><label>Adjustment Factor</label><input type="number" id="inp_2" value="1.2"></div>
+            </div>`,
+            
+        // ============ ELECTRICAL ENGINEERING ============
+        ohms_law: `
+            <div class="input-grid">
+                <div><label>Voltage V (Volts)</label><input type="number" id="inp_1" value="12"></div>
+                <div><label>Resistance R (Ω)</label><input type="number" id="inp_2" value="6"></div>
+            </div>`,
+        power_calc: `
+            <div class="input-grid">
+                <div><label>Voltage V (Volts)</label><input type="number" id="inp_1" value="230"></div>
+                <div><label>Current I (Amps)</label><input type="number" id="inp_2" value="10"></div>
+            </div>`,
+        series_resistance: `
+            <div class="input-grid">
+                <div><label>R₁ (Ω)</label><input type="number" id="inp_1" value="10"></div>
+                <div><label>R₂ (Ω)</label><input type="number" id="inp_2" value="20"></div>
+                <div><label>R₃ (Ω)</label><input type="number" id="inp_3" value="30"></div>
+            </div>`,
+        parallel_resistance: `
+            <div class="input-grid">
+                <div><label>R₁ (Ω)</label><input type="number" id="inp_1" value="10"></div>
+                <div><label>R₂ (Ω)</label><input type="number" id="inp_2" value="20"></div>
+            </div>`,
+        capacitor_series: `
+            <div class="input-grid">
+                <div><label>C₁ (μF)</label><input type="number" id="inp_1" value="10"></div>
+                <div><label>C₂ (μF)</label><input type="number" id="inp_2" value="20"></div>
+            </div>`,
+        inductor_series: `
+            <div class="input-grid">
+                <div><label>L₁ (mH)</label><input type="number" id="inp_1" value="10"></div>
+                <div><label>L₂ (mH)</label><input type="number" id="inp_2" value="20"></div>
+                <div><label>L₃ (mH)</label><input type="number" id="inp_3" value="30"></div>
+            </div>`,
+        rc_time: `
+            <div class="input-grid">
+                <div><label>Resistance R (Ω)</label><input type="number" id="inp_1" value="1000"></div>
+                <div><label>Capacitance C (μF)</label><input type="number" id="inp_2" value="100"></div>
+            </div>`,
+        rl_time: `
+            <div class="input-grid">
+                <div><label>Inductance L (H)</label><input type="number" id="inp_1" value="0.5"></div>
+                <div><label>Resistance R (Ω)</label><input type="number" id="inp_2" value="10"></div>
+            </div>`,
+        resonance: `
+            <div class="input-grid">
+                <div><label>Inductance L (H)</label><input type="number" id="inp_1" value="0.01" step="0.001"></div>
+                <div><label>Capacitance C (F)</label><input type="number" id="inp_2" value="0.0001" step="0.00001"></div>
+            </div>`,
+        impedance: `
+            <div class="input-grid">
+                <div><label>Resistance R (Ω)</label><input type="number" id="inp_1" value="50"></div>
+                <div><label>Inductive Reactance XL (Ω)</label><input type="number" id="inp_2" value="40"></div>
+                <div><label>Capacitive Reactance XC (Ω)</label><input type="number" id="inp_3" value="20"></div>
+            </div>`,
+        power_factor: `
+            <div class="input-grid">
+                <div><label>Real Power P (W)</label><input type="number" id="inp_1" value="1000"></div>
+                <div><label>Apparent Power S (VA)</label><input type="number" id="inp_2" value="1200"></div>
+            </div>`,
+        three_phase: `
+            <div class="input-grid">
+                <div><label>Line Voltage VL (V)</label><input type="number" id="inp_1" value="400"></div>
+                <div><label>Line Current IL (A)</label><input type="number" id="inp_2" value="10"></div>
+                <div><label>Power Factor cos φ</label><input type="number" id="inp_3" value="0.85" step="0.01"></div>
+            </div>`,
+        transformer: `
+            <div class="input-grid">
+                <div><label>Primary Voltage V₁ (V)</label><input type="number" id="inp_1" value="230"></div>
+                <div><label>Primary Turns N₁</label><input type="number" id="inp_2" value="1000"></div>
+                <div><label>Secondary Turns N₂</label><input type="number" id="inp_3" value="100"></div>
+            </div>`,
+        motor_torque: `
+            <div class="input-grid">
+                <div><label>Constant K</label><input type="number" id="inp_1" value="0.5"></div>
+                <div><label>Flux Φ (Wb)</label><input type="number" id="inp_2" value="0.8"></div>
+                <div><label>Armature Current Ia (A)</label><input type="number" id="inp_3" value="10"></div>
+            </div>`,
+        motor_speed: `
+            <div class="input-grid">
+                <div><label>Voltage V (V)</label><input type="number" id="inp_1" value="230"></div>
+                <div><label>Armature Current Ia (A)</label><input type="number" id="inp_2" value="10"></div>
+                <div><label>Armature Resistance Ra (Ω)</label><input type="number" id="inp_3" value="0.5"></div>
+                <div><label>Constant K×Φ</label><input type="number" id="inp_4" value="0.4"></div>
+            </div>`,
+        efficiency: `
+            <div class="input-grid">
+                <div><label>Output Power Pout (W)</label><input type="number" id="inp_1" value="1000"></div>
+                <div><label>Input Power Pin (W)</label><input type="number" id="inp_2" value="1200"></div>
+            </div>`,
+        voltage_divider: `
+            <div class="input-grid">
+                <div><label>Input Voltage Vin (V)</label><input type="number" id="inp_1" value="12"></div>
+                <div><label>Resistance R₁ (Ω)</label><input type="number" id="inp_2" value="1000"></div>
+                <div><label>Resistance R₂ (Ω)</label><input type="number" id="inp_3" value="2000"></div>
+            </div>`,
+        current_divider: `
+            <div class="input-grid">
+                <div><label>Total Current Itotal (A)</label><input type="number" id="inp_1" value="3"></div>
+                <div><label>Resistance R₁ (Ω)</label><input type="number" id="inp_2" value="10"></div>
+                <div><label>Resistance R₂ (Ω)</label><input type="number" id="inp_3" value="20"></div>
+            </div>`,
+        wheatstone: `
+            <div class="input-grid">
+                <div><label>R₁ (Ω)</label><input type="number" id="inp_1" value="100"></div>
+                <div><label>R₂ (Ω)</label><input type="number" id="inp_2" value="200"></div>
+                <div><label>R₃ (Ω)</label><input type="number" id="inp_3" value="150"></div>
+            </div>`,
+        line_loss: `
+            <div class="input-grid">
+                <div><label>Current I (A)</label><input type="number" id="inp_1" value="50"></div>
+                <div><label>Line Resistance R (Ω)</label><input type="number" id="inp_2" value="2"></div>
+            </div>`,
+        fault_current: `
+            <div class="input-grid">
+                <div><label>Voltage V (V)</label><input type="number" id="inp_1" value="11000"></div>
+                <div><label>Impedance Z (Ω)</label><input type="number" id="inp_2" value="5"></div>
+            </div>`,
+        relay_setting: `
+            <div class="input-grid">
+                <div><label>Fault Current If (A)</label><input type="number" id="inp_1" value="1000"></div>
+                <div><label>Pickup Current Ip (A)</label><input type="number" id="inp_2" value="100"></div>
+            </div>`,
+        regulation: `
+            <div class="input-grid">
+                <div><label>No-Load Voltage Vnl (V)</label><input type="number" id="inp_1" value="240"></div>
+                <div><label>Full-Load Voltage Vfl (V)</label><input type="number" id="inp_2" value="230"></div>
+            </div>`,
+        skin_depth: `
+            <div class="input-grid">
+                <div><label>Frequency ω (rad/s)</label><input type="number" id="inp_1" value="314"></div>
+                <div><label>Permeability μ (H/m)</label><input type="number" id="inp_2" value="0.00000126" step="0.0000000001"></div>
+                <div><label>Conductivity σ (S/m)</label><input type="number" id="inp_3" value="58000000"></div>
+            </div>`,
+        antenna_gain: `
+            <div class="input-grid">
+                <div><label>Effective Area A (m²)</label><input type="number" id="inp_1" value="1"></div>
+                <div><label>Wavelength λ (m)</label><input type="number" id="inp_2" value="0.1"></div>
+            </div>`,
+            
+        // ============ INDUSTRIAL ENGINEERING ============
+        eoq: `
+            <div class="input-grid">
+                <div><label>Annual Demand D (units)</label><input type="number" id="inp_1" value="10000"></div>
+                <div><label>Ordering Cost S ($)</label><input type="number" id="inp_2" value="50"></div>
+                <div><label>Holding Cost H ($/unit/year)</label><input type="number" id="inp_3" value="5"></div>
+            </div>`,
+        reorder_point: `
+            <div class="input-grid">
+                <div><label>Daily Demand d (units)</label><input type="number" id="inp_1" value="100"></div>
+                <div><label>Lead Time L (days)</label><input type="number" id="inp_2" value="7"></div>
+                <div><label>Safety Stock SS (units)</label><input type="number" id="inp_3" value="200"></div>
+            </div>`,
+        safety_stock: `
+            <div class="input-grid">
+                <div><label>Z-Score (Service Level)</label><input type="number" id="inp_1" value="1.65" step="0.01"></div>
+                <div><label>Std Deviation σ</label><input type="number" id="inp_2" value="20"></div>
+                <div><label>Lead Time L (days)</label><input type="number" id="inp_3" value="7"></div>
+            </div>`,
+        abc_analysis: `
+            <div class="input-grid">
+                <div><label>Item Value ($)</label><input type="number" id="inp_1" value="5000"></div>
+                <div><label>Total Inventory Value ($)</label><input type="number" id="inp_2" value="100000"></div>
+            </div>`,
+        line_balancing: `
+            <div class="input-grid">
+                <div><label>Total Task Time Σt (min)</label><input type="number" id="inp_1" value="120"></div>
+                <div><label>Number of Workstations n</label><input type="number" id="inp_2" value="6"></div>
+                <div><label>Cycle Time C (min)</label><input type="number" id="inp_3" value="25"></div>
+            </div>`,
+        takt_time: `
+            <div class="input-grid">
+                <div><label>Available Time (seconds)</label><input type="number" id="inp_1" value="28800"></div>
+                <div><label>Customer Demand (units)</label><input type="number" id="inp_2" value="480"></div>
+            </div>`,
+        oee: `
+            <div class="input-grid">
+                <div><label>Availability (%)</label><input type="number" id="inp_1" value="90"></div>
+                <div><label>Performance (%)</label><input type="number" id="inp_2" value="85"></div>
+                <div><label>Quality (%)</label><input type="number" id="inp_3" value="95"></div>
+            </div>`,
+        learning_curve: `
+            <div class="input-grid">
+                <div><label>First Unit Time T₁ (hrs)</label><input type="number" id="inp_1" value="100"></div>
+                <div><label>Unit Number n</label><input type="number" id="inp_2" value="10"></div>
+                <div><label>Learning Rate (%)</label><input type="number" id="inp_3" value="80"></div>
+            </div>`,
+        breakeven: `
+            <div class="input-grid">
+                <div><label>Fixed Cost FC ($)</label><input type="number" id="inp_1" value="50000"></div>
+                <div><label>Selling Price P ($/unit)</label><input type="number" id="inp_2" value="100"></div>
+                <div><label>Variable Cost VC ($/unit)</label><input type="number" id="inp_3" value="60"></div>
+            </div>`,
+        productivity: `
+            <div class="input-grid">
+                <div><label>Output (units)</label><input type="number" id="inp_1" value="1000"></div>
+                <div><label>Input (labor hours)</label><input type="number" id="inp_2" value="200"></div>
+            </div>`,
+        cpk: `
+            <div class="input-grid">
+                <div><label>Upper Spec Limit USL</label><input type="number" id="inp_1" value="100"></div>
+                <div><label>Lower Spec Limit LSL</label><input type="number" id="inp_2" value="80"></div>
+                <div><label>Process Mean μ</label><input type="number" id="inp_3" value="90"></div>
+                <div><label>Std Deviation σ</label><input type="number" id="inp_4" value="2"></div>
+            </div>`,
+        six_sigma: `
+            <div class="input-grid">
+                <div><label>Number of Defects</label><input type="number" id="inp_1" value="50"></div>
+                <div><label>Total Opportunities</label><input type="number" id="inp_2" value="10000"></div>
+            </div>`,
+        mtbf: `
+            <div class="input-grid">
+                <div><label>Total Operating Time (hrs)</label><input type="number" id="inp_1" value="10000"></div>
+                <div><label>Number of Failures</label><input type="number" id="inp_2" value="10"></div>
+            </div>`,
+        mttr: `
+            <div class="input-grid">
+                <div><label>Total Repair Time (hrs)</label><input type="number" id="inp_1" value="50"></div>
+                <div><label>Number of Repairs</label><input type="number" id="inp_2" value="10"></div>
+            </div>`,
+        availability: `
+            <div class="input-grid">
+                <div><label>MTBF (hours)</label><input type="number" id="inp_1" value="1000"></div>
+                <div><label>MTTR (hours)</label><input type="number" id="inp_2" value="5"></div>
+            </div>`
+    };
+    
+    return inputs[calcId] || '<p style="color: #ff6b6b;">Calculator inputs not configured yet. Contact support.</p>';
+}
+// PART 6: Run Calculation - ALL CALCULATORS WITH AMAZON LINKS
+function runCalculation(calcId) {
+    const inp1 = parseFloat(document.getElementById('inp_1')?.value) || 0;
+    const inp2 = parseFloat(document.getElementById('inp_2')?.value) || 0;
+    const inp3 = parseFloat(document.getElementById('inp_3')?.value) || 0;
+    const inp4 = parseFloat(document.getElementById('inp_4')?.value) || 0;
+    const inp5 = parseFloat(document.getElementById('inp_5')?.value) || 0;
+    let result = '';
+    
+    // ============ CHEMICAL ENGINEERING ============
+    if(calcId === 'mat_balance') {
+        const m3 = inp1 + inp3;
+        const x3 = ((inp1 * inp2/100) + (inp3 * inp4/100)) / m3;
+        result = `<strong>Total Flow:</strong> ${m3.toFixed(2)} kg/h<br><strong>Exit Concentration:</strong> ${(x3*100).toFixed(2)}%`;
+        saveToHistory('Material Balance', {m1:inp1, x1:inp2, m2:inp3, x2:inp4}, `Flow: ${m3.toFixed(2)} kg/h`);
+        result += `<br><a href="https://www.amazon.com/s?k=Industrial+Inline+Mixer" target="_blank" class="amazon-link">🛒 Industrial Mixers</a>`;
+    }
+    else if(calcId === 'antoine') {
+        const p = Math.pow(10, inp1 - (inp2 / (inp4 + inp3)));
+        result = `<strong>Vapor Pressure:</strong> ${p.toFixed(2)} mmHg<br><strong>Temperature:</strong> ${inp4}°C`;
+        saveToHistory('Antoine Equation', {A:inp1, B:inp2, C:inp3, T:inp4}, `P = ${p.toFixed(2)} mmHg`);
+        result += `<br><a href="https://www.amazon.com/s?k=Digital+Pressure+Gauge" target="_blank" class="amazon-link">🛒 Pressure Gauges</a>`;
+    }
+    else if(calcId === 'cstr') {
+        const vol = (inp3 * inp2) / (inp1 * (1 - inp2));
+        result = `<strong>CSTR Volume:</strong> ${vol.toFixed(2)} L<br><strong>Conversion:</strong> ${(inp2*100).toFixed(1)}%`;
+        saveToHistory('CSTR Design', {k:inp1, X:inp2, F0:inp3}, `V = ${vol.toFixed(2)} L`);
+        result += `<br><a href="https://www.amazon.com/s?k=Stainless+Steel+Reactor+Vessel" target="_blank" class="amazon-link">🛒 Reactor Vessels</a>`;
+    }
+    else if(calcId === 'heat_exchanger') {
+        const dt1 = inp1 - inp4;
+        const dt2 = inp2 - inp3;
+        const lmtd = (dt1 - dt2) / Math.log(dt1 / dt2);
+        result = `<strong>LMTD:</strong> ${lmtd.toFixed(2)}°C<br><strong>ΔT₁:</strong> ${dt1.toFixed(2)}°C<br><strong>ΔT₂:</strong> ${dt2.toFixed(2)}°C`;
+        saveToHistory('Heat Exchanger LMTD', {Thi:inp1, Tho:inp2, Tci:inp3, Tco:inp4}, `LMTD = ${lmtd.toFixed(2)}°C`);
+        result += `<br><a href="https://www.amazon.com/s?k=Shell+Tube+Heat+Exchanger" target="_blank" class="amazon-link">🛒 Heat Exchangers</a>`;
+    }
+    else if(calcId === 'reynolds') {
+        const re = (inp1 * inp2 * inp3) / inp4;
+        const flow = re < 2300 ? 'Laminar' : re < 4000 ? 'Transitional' : 'Turbulent';
+        result = `<strong>Reynolds Number:</strong> ${re.toFixed(0)}<br><strong>Flow Regime:</strong> ${flow}`;
+        saveToHistory('Reynolds Number', {rho:inp1, V:inp2, D:inp3, mu:inp4}, `Re = ${re.toFixed(0)}`);
+        result += `<br><a href="https://www.amazon.com/s?k=Ultrasonic+Flowmeter" target="_blank" class="amazon-link">🛒 Flow Meters</a>`;
+    }
+    else if(calcId === 'distillation') {
+        const y = (inp1 * inp2) / (1 + (inp1 - 1) * inp2);
+        result = `<strong>Vapor Mole Fraction y:</strong> ${y.toFixed(4)}<br><strong>Liquid Mole Fraction x:</strong> ${inp2.toFixed(4)}`;
+        saveToHistory('Distillation VLE', {alpha:inp1, x:inp2}, `y = ${y.toFixed(4)}`);
+        result += `<br><a href="https://www.amazon.com/s?k=Distillation+Column+Packing" target="_blank" class="amazon-link">🛒 Column Packing</a>`;
+    }
+    else if(calcId === 'pump_power') {
+        const g = 9.81;
+        const power = (inp1 * g * inp2 * inp3) / ((inp4/100) * 1000);
+        result = `<strong>Pump Power:</strong> ${power.toFixed(2)} kW<br><strong>Hydraulic Power:</strong> ${(inp1 * g * inp2 * inp3 / 1000).toFixed(2)} kW<br><strong>Efficiency:</strong> ${inp4}%`;
+        saveToHistory('Pump Power', {rho:inp1, Q:inp2, H:inp3, eta:inp4}, `P = ${power.toFixed(2)} kW`);
+        result += `<br><a href="https://www.amazon.com/s?k=Chemical+Pump+Centrifugal" target="_blank" class="amazon-link">🛒 Process Pumps</a>`;
+    }
+    else if(calcId === 'absorption') {
+        const N = Math.log((inp1 - inp4*inp3)/(inp2 - inp4*inp3)) / Math.log(inp4);
+        result = `<strong>Number of Stages N:</strong> ${N.toFixed(2)}<br><strong>Height per Stage:</strong> ${(10/N).toFixed(2)} m (approx)`;
+        saveToHistory('Absorption Tower', {y1:inp1, y2:inp2, x2:inp3, m:inp4}, `N = ${N.toFixed(2)} stages`);
+        result += `<br><a href="https://www.amazon.com/s?k=Industrial+Absorption+Column" target="_blank" class="amazon-link">🛒 Absorption Towers</a>`;
+    }
+    else if(calcId === 'crystallization') {
+        const crystalYield = ((inp1 - inp2) / inp1) * 100;
+        const crystalMass = (inp1 - inp2) * inp3 / 1000;
+        result = `<strong>Crystal Yield:</strong> ${crystalYield.toFixed(2)}%<br><strong>Crystal Mass:</strong> ${crystalMass.toFixed(2)} kg`;
+        saveToHistory('Crystallization', {C1:inp1, C2:inp2, V:inp3}, `Yield = ${crystalYield.toFixed(2)}%`);
+        result += `<br><a href="https://www.amazon.com/s?k=Crystallization+Equipment" target="_blank" class="amazon-link">🛒 Crystallization Equipment</a>`;
+    }
+    else if(calcId === 'filtration') {
+        const V = Math.sqrt(inp1 * inp2 + 2 * inp1 * inp2 * inp3) - inp3;
+        const rate = V / inp2;
+        result = `<strong>Filtrate Volume:</strong> ${V.toFixed(4)} m³<br><strong>Filtration Rate:</strong> ${(rate*1000).toFixed(2)} L/s`;
+        saveToHistory('Filtration Rate', {K:inp1, t:inp2, V0:inp3}, `V = ${V.toFixed(4)} m³`);
+        result += `<br><a href="https://www.amazon.com/s?k=Industrial+Filter+Press" target="_blank" class="amazon-link">🛒 Filter Presses</a>`;
+    }
+    
+    // ============ MECHANICAL ENGINEERING ============
+    else if(calcId === 'stress_strain') {
+        const stress = inp1 * 1000 * inp2;
+        result = `<strong>Stress σ:</strong> ${stress.toFixed(2)} MPa<br><strong>Strain ε:</strong> ${inp2.toFixed(4)}`;
+        saveToHistory('Stress-Strain', {E:inp1, epsilon:inp2}, `σ = ${stress.toFixed(2)} MPa`);
+        result += `<br><a href="https://www.amazon.com/s?k=Universal+Testing+Machine" target="_blank" class="amazon-link">🛒 Testing Equipment</a>`;
+    }
+    else if(calcId === 'bending_moment') {
+        const M = (inp1 * 1e6 * inp2) / inp3;
+        result = `<strong>Bending Moment M:</strong> ${(M/1000).toFixed(2)} kN·m<br><strong>Section Stress:</strong> ${inp1} MPa`;
+        saveToHistory('Bending Moment', {sigma:inp1, I:inp2, y:inp3}, `M = ${(M/1000).toFixed(2)} kN·m`);
+        result += `<br><a href="https://www.amazon.com/s?k=Beam+Analysis+Equipment" target="_blank" class="amazon-link">🛒 Structural Analysis Tools</a>`;
+    }
+    else if(calcId === 'deflection') {
+        const E_Pa = inp3 * 1e9;
+        const deflection = (inp1 * Math.pow(inp2, 3)) / (3 * E_Pa * inp4);
+        result = `<strong>Deflection δ:</strong> ${(deflection*1000).toFixed(4)} mm<br><strong>Load:</strong> ${inp1} N<br><strong>Length:</strong> ${inp2} m`;
+        saveToHistory('Beam Deflection', {P:inp1, L:inp2, E:inp3, I:inp4}, `δ = ${(deflection*1000).toFixed(4)} mm`);
+        result += `<br><a href="https://www.amazon.com/s?k=Structural+Analysis+Tools" target="_blank" class="amazon-link">🛒 Analysis Tools</a>`;
+    }
+    else if(calcId === 'torsion') {
+        const tau = (inp1 * inp2) / inp3;
+        result = `<strong>Torsional Stress τ:</strong> ${(tau/1e6).toFixed(2)} MPa<br><strong>Torque:</strong> ${inp1} N·m`;
+        saveToHistory('Torsional Stress', {T:inp1, r:inp2, J:inp3}, `τ = ${(tau/1e6).toFixed(2)} MPa`);
+        result += `<br><a href="https://www.amazon.com/s?k=Torque+Wrench" target="_blank" class="amazon-link">🛒 Torque Tools</a>`;
+    }
+    else if(calcId === 'critical_speed') {
+        const Nc = 946.4 * Math.sqrt(inp2 / (inp1/1000));
+        result = `<strong>Critical Speed:</strong> ${Nc.toFixed(0)} RPM<br><strong>Safe Operating Speed:</strong> ${(Nc*0.7).toFixed(0)} RPM (70%)`;
+        saveToHistory('Critical Speed', {delta:inp1, g:inp2}, `Nc = ${Nc.toFixed(0)} RPM`);
+        result += `<br><a href="https://www.amazon.com/s?k=Shaft+Vibration+Analyzer" target="_blank" class="amazon-link">🛒 Vibration Analysis Equipment</a>`;
+    }
+    else if(calcId === 'gear_ratio') {
+        const vr = inp1 / inp2;
+        const speedChange = vr < 1 ? 'Increase' : 'Decrease';
+        result = `<strong>Velocity Ratio:</strong> ${vr.toFixed(3)}<br><strong>Speed:</strong> ${speedChange} (${(vr < 1 ? inp2/inp1 : inp1/inp2).toFixed(2)}×)`;
+        saveToHistory('Gear Ratio', {N1:inp1, N2:inp2}, `VR = ${vr.toFixed(3)}`);
+        result += `<br><a href="https://www.amazon.com/s?k=Gear+Set" target="_blank" class="amazon-link">🛒 Gears & Gear Sets</a>`;
+    }
+    else if(calcId === 'brake_power') {
+        const BP = (2 * Math.PI * inp1 * inp2) / 60000;
+        result = `<strong>Brake Power:</strong> ${BP.toFixed(2)} kW<br><strong>Horsepower:</strong> ${(BP*1.341).toFixed(2)} HP`;
+        saveToHistory('Brake Power', {N:inp1, T:inp2}, `BP = ${BP.toFixed(2)} kW`);
+        result += `<br><a href="https://www.amazon.com/s?k=Engine+Dynamometer" target="_blank" class="amazon-link">🛒 Power Measurement Equipment</a>`;
+    }
+    else if(calcId === 'thermal_stress') {
+        const sigma = inp1 * 1000 * (inp2 / 1e6) * inp3;
+        result = `<strong>Thermal Stress σ:</strong> ${sigma.toFixed(2)} MPa<br><strong>Temperature Change:</strong> ${inp3}°C`;
+        saveToHistory('Thermal Stress', {E:inp1, alpha:inp2, deltaT:inp3}, `σ = ${sigma.toFixed(2)} MPa`);
+        result += `<br><a href="https://www.amazon.com/s?k=Thermal+Stress+Analyzer" target="_blank" class="amazon-link">🛒 Thermal Analysis Equipment</a>`;
+    }
+    else if(calcId === 'spring_stiffness') {
+        const G_Pa = inp1 * 1e9;
+        const d_m = inp2 / 1000;
+        const D_m = inp3 / 1000;
+        const k = (G_Pa * Math.pow(d_m, 4)) / (8 * Math.pow(D_m, 3) * inp4);
+        result = `<strong>Spring Stiffness k:</strong> ${k.toFixed(0)} N/m<br><strong>Spring Rate:</strong> ${(k/1000).toFixed(2)} N/mm`;
+        saveToHistory('Spring Stiffness', {G:inp1, d:inp2, D:inp3, n:inp4}, `k = ${k.toFixed(0)} N/m`);
+        result += `<br><a href="https://www.amazon.com/s?k=Compression+Springs" target="_blank" class="amazon-link">🛒 Industrial Springs</a>`;
+    }
+    else if(calcId === 'flywheel') {
+        const E = 0.5 * inp1 * Math.pow(inp2, 2);
+        result = `<strong>Stored Energy:</strong> ${(E/1000).toFixed(2)} kJ<br><strong>Power Capacity:</strong> ${(E/1000).toFixed(2)} kW @ 1s discharge`;
+        saveToHistory('Flywheel Energy', {I:inp1, omega:inp2}, `E = ${(E/1000).toFixed(2)} kJ`);
+        result += `<br><a href="https://www.amazon.com/s?k=Flywheel+Assembly" target="_blank" class="amazon-link">🛒 Flywheel Components</a>`;
+    }
+    else if(calcId === 'carnot') {
+        const eff = (1 - inp2/inp1) * 100;
+        result = `<strong>Carnot Efficiency:</strong> ${eff.toFixed(2)}%<br><strong>T₁:</strong> ${inp1} K<br><strong>T₂:</strong> ${inp2} K`;
+        saveToHistory('Carnot Efficiency', {T1:inp1, T2:inp2}, `η = ${eff.toFixed(2)}%`);
+        result += `<br><a href="https://www.amazon.com/s?k=Thermodynamics+Textbook" target="_blank" class="amazon-link">🛒 Thermodynamics Books</a>`;
+    }
+    else if(calcId === 'rankine') {
+        const eff = ((1 - inp2/inp1) * 100);
+        result = `<strong>Thermal Efficiency:</strong> ${eff.toFixed(2)}%<br><strong>Work Output:</strong> ${(inp1-inp2).toFixed(2)} kJ/kg`;
+        saveToHistory('Rankine Cycle', {H1:inp1, H2:inp2}, `η = ${eff.toFixed(2)}%`);
+        result += `<br><a href="https://www.amazon.com/s?k=Steam+Turbine" target="_blank" class="amazon-link">🛒 Steam Turbines</a>`;
+    }
+    else if(calcId === 'otto_cycle') {
+        const eff = (1 - 1/Math.pow(inp1, inp2-1)) * 100;
+        result = `<strong>Otto Efficiency:</strong> ${eff.toFixed(2)}%<br><strong>Compression Ratio:</strong> ${inp1}:1`;
+        saveToHistory('Otto Cycle', {r:inp1, gamma:inp2}, `η = ${eff.toFixed(2)}%`);
+        result += `<br><a href="https://www.amazon.com/s?k=Engine+Components" target="_blank" class="amazon-link">🛒 Engine Parts</a>`;
+    }
+    else if(calcId === 'diesel_cycle') {
+        const term1 = 1 / Math.pow(inp1, inp3 - 1);
+        const term2 = (Math.pow(inp2, inp3) - 1) / (inp3 * (inp2 - 1));
+        const eff = (1 - term1 * term2) * 100;
+        result = `<strong>Diesel Efficiency:</strong> ${eff.toFixed(2)}%<br><strong>Compression Ratio:</strong> ${inp1}:1<br><strong>Cut-off Ratio:</strong> ${inp2}`;
+        saveToHistory('Diesel Cycle', {r:inp1, beta:inp2, gamma:inp3}, `η = ${eff.toFixed(2)}%`);
+        result += `<br><a href="https://www.amazon.com/s?k=Diesel+Engine+Components" target="_blank" class="amazon-link">🛒 Diesel Engine Parts</a>`;
+    }
+    else if(calcId === 'compressor_work') {
+        const P1_Pa = inp1 * 1e5;
+        const P2_Pa = inp2 * 1e5;
+        const W = (inp4 / (inp4 - 1)) * P1_Pa * inp3 * (Math.pow(P2_Pa/P1_Pa, (inp4-1)/inp4) - 1);
+        result = `<strong>Compressor Work:</strong> ${(W/1000).toFixed(2)} kJ<br><strong>Power Required:</strong> ${(W/1000).toFixed(2)} kW @ 1s`;
+        saveToHistory('Compressor Work', {P1:inp1, P2:inp2, V1:inp3, gamma:inp4}, `W = ${(W/1000).toFixed(2)} kJ`);
+        result += `<br><a href="https://www.amazon.com/s?k=Industrial+Air+Compressor" target="_blank" class="amazon-link">🛒 Air Compressors</a>`;
+    }
+    else if(calcId === 'turbine_work') {
+        const W = inp1 * inp2 * (inp3 - inp4);
+        result = `<strong>Turbine Work:</strong> ${W.toFixed(2)} kW<br><strong>Heat Drop:</strong> ${(inp3-inp4).toFixed(1)} K`;
+        saveToHistory('Turbine Work', {mdot:inp1, cp:inp2, T1:inp3, T2:inp4}, `W = ${W.toFixed(2)} kW`);
+        result += `<br><a href="https://www.amazon.com/s?k=Steam+Turbine+Equipment" target="_blank" class="amazon-link">🛒 Turbine Equipment</a>`;
+    }
+    else if(calcId === 'refrigeration') {
+        const COP = inp1 / inp2;
+        result = `<strong>COP:</strong> ${COP.toFixed(2)}<br><strong>Performance:</strong> ${COP >= 3 ? 'Good' : COP >= 2 ? 'Average' : 'Poor'}`;
+        saveToHistory('COP Refrigeration', {Q2:inp1, W:inp2}, `COP = ${COP.toFixed(2)}`);
+        result += `<br><a href="https://www.amazon.com/s?k=Refrigeration+Compressor" target="_blank" class="amazon-link">🛒 Refrigeration Equipment</a>`;
+    }
+    else if(calcId === 'bearing_life') {
+        const L10 = Math.pow(inp1/inp2, 3) * 1e6;
+        const hours = L10 / (60 * inp2 * 1000);
+        result = `<strong>L₁₀ Life:</strong> ${(L10/1e6).toFixed(2)} million revolutions<br><strong>Estimated Hours:</strong> ${hours.toFixed(0)} hrs @ 1000 RPM`;
+        saveToHistory('Bearing Life', {C:inp1, P:inp2}, `L10 = ${(L10/1e6).toFixed(2)} M rev`);
+        result += `<br><a href="https://www.amazon.com/s?k=Industrial+Bearings" target="_blank" class="amazon-link">🛒 Industrial Bearings</a>`;
+    }
+    else if(calcId === 'belt_tension') {
+        const ratio = Math.exp(inp1 * inp2);
+        result = `<strong>Tension Ratio T₁/T₂:</strong> ${ratio.toFixed(3)}<br><strong>Tight Side:</strong> ${ratio.toFixed(2)}× Slack Side`;
+        saveToHistory('Belt Drive', {mu:inp1, theta:inp2}, `T1/T2 = ${ratio.toFixed(3)}`);
+        result += `<br><a href="https://www.amazon.com/s?k=V+Belt+Drive" target="_blank" class="amazon-link">🛒 Belt Drive Systems</a>`;
+    }
+    else if(calcId === 'vibration_freq') {
+        const fn = (1 / (2 * Math.PI)) * Math.sqrt(inp1 / inp2);
+        result = `<strong>Natural Frequency:</strong> ${fn.toFixed(2)} Hz<br><strong>Period:</strong> ${(1/fn).toFixed(4)} s`;
+        saveToHistory('Natural Frequency', {k:inp1, m:inp2}, `fn = ${fn.toFixed(2)} Hz`);
+        result += `<br><a href="https://www.amazon.com/s?k=Vibration+Damper" target="_blank" class="amazon-link">🛒 Vibration Control Equipment</a>`;
+    }
+    
+    // ============ CIVIL ENGINEERING ============
+    else if(calcId === 'beam_reaction') {
+        const b = inp3 - inp2;
+        const Ra = (inp1 * b) / inp3;
+        const Rb = inp1 - Ra;
+        result = `<strong>Reaction at A:</strong> ${Ra.toFixed(2)} kN<br><strong>Reaction at B:</strong> ${Rb.toFixed(2)} kN`;
+        saveToHistory('Beam Reactions', {W:inp1, a:inp2, L:inp3}, `Ra = ${Ra.toFixed(2)} kN`);
+        result += `<br><a href="https://www.amazon.com/s?k=Structural+Analysis+Software" target="_blank" class="amazon-link">🛒 Analysis Software</a>`;
+    }
+    else if(calcId === 'shear_force') {
+        const Vmax = (inp1 * inp2) / 2;
+        result = `<strong>Maximum Shear Force:</strong> ${Vmax.toFixed(2)} kN<br><strong>Location:</strong> Supports`;
+        saveToHistory('Shear Force', {w:inp1, L:inp2}, `Vmax = ${Vmax.toFixed(2)} kN`);
+        result += `<br><a href="https://www.amazon.com/s?k=Structural+Analysis+Tools" target="_blank" class="amazon-link">🛒 Analysis Tools</a>`;
+    }
+    else if(calcId === 'moment_capacity') {
+        const M = (inp1 * inp2) / 1000;
+        result = `<strong>Moment Capacity:</strong> ${M.toFixed(2)} kN·m<br><strong>Section Modulus Required:</strong> ${inp2} cm³`;
+        saveToHistory('Moment Capacity', {fy:inp1, Z:inp2}, `M = ${M.toFixed(2)} kN·m`);
+        result += `<br><a href="https://www.amazon.com/s?k=Steel+I+Beam" target="_blank" class="amazon-link">🛒 Steel Beams</a>`;
+    }
+    else if(calcId === 'column_buckling') {
+        const E_Pa = inp1 * 1e9;
+        const Pcr = (Math.PI * Math.PI * E_Pa * inp2) / Math.pow(inp4 * inp3, 2);
+        result = `<strong>Critical Load:</strong> ${(Pcr/1000).toFixed(2)} kN<br><strong>Euler Buckling Load</strong>`;
+        saveToHistory('Column Buckling', {E:inp1, I:inp2, L:inp3, K:inp4}, `Pcr = ${(Pcr/1000).toFixed(2)} kN`);
+        result += `<br><a href="https://www.amazon.com/s?k=Steel+Column" target="_blank" class="amazon-link">🛒 Steel Columns</a>`;
+    }
+    else if(calcId === 'concrete_mix') {
+        const total = inp1 + inp2 + inp3 + inp4;
+        const wc = inp2 / inp1;
+        result = `<strong>Total Mix:</strong> ${total.toFixed(0)} kg/m³<br><strong>W/C Ratio:</strong> ${wc.toFixed(2)}<br><strong>Mix Ratio:</strong> 1:${(inp3/inp1).toFixed(2)}:${(inp4/inp1).toFixed(2)}`;
+        saveToHistory('Concrete Mix Design', {C:inp1, W:inp2, FA:inp3, CA:inp4}, `W/C = ${wc.toFixed(2)}`);
+        result += `<br><a href="https://www.amazon.com/s?k=Concrete+Mixer" target="_blank" class="amazon-link">🛒 Concrete Mixers</a>`;
+    }
+    else if(calcId === 'steel_design') {
+        const Z_req = (inp1 * 1e6) / inp2;
+        result = `<strong>Section Modulus Required:</strong> ${(Z_req/1e3).toFixed(2)} cm³<br><strong>Suggested Section:</strong> Check steel tables`;
+        saveToHistory('Steel Beam Design', {M:inp1, fy:inp2}, `Z = ${(Z_req/1e3).toFixed(2)} cm³`);
+        result += `<br><a href="https://www.amazon.com/s?k=Steel+Design+Manual" target="_blank" class="amazon-link">🛒 Steel Design Manuals</a>`;
+    }
+    else if(calcId === 'footing_design') {
+        const Nc = 5.14, Nq = 1, Ngamma = 0;
+        const qult = inp1 * Nc + inp2 * inp3 * Nq + 0.5 * inp2 * inp4 * Ngamma;
+        result = `<strong>Ultimate Bearing Capacity:</strong> ${qult.toFixed(2)} kPa<br><strong>Safe Bearing Capacity:</strong> ${(qult/3).toFixed(2)} kPa (FS=3)`;
+        saveToHistory('Footing Design', {c:inp1, gamma:inp2, D:inp3, B:inp4}, `qult = ${qult.toFixed(2)} kPa`);
+        result += `<br><a href="https://www.amazon.com/s?k=Foundation+Design+Book" target="_blank" class="amazon-link">🛒 Foundation Engineering Books</a>`;
+    }
+    else if(calcId === 'retaining_wall') {
+        const Ka = Math.tan(Math.pow(45 - inp3/2, 2) * Math.PI/180);
+        const Pa = 0.5 * inp1 * Math.pow(inp2, 2) * Ka;
+        result = `<strong>Active Earth Pressure:</strong> ${Pa.toFixed(2)} kN/m<br><strong>Coefficient Ka:</strong> ${Ka.toFixed(3)}`;
+        saveToHistory('Retaining Wall', {gamma:inp1, H:inp2, phi:inp3}, `Pa = ${Pa.toFixed(2)} kN/m`);
+        result += `<br><a href="https://www.amazon.com/s?k=Retaining+Wall+Design" target="_blank" class="amazon-link">🛒 Design Software</a>`;
+    }
+    else if(calcId === 'slab_design') {
+        const M = inp3 * inp1 * Math.pow(inp2, 2);
+        result = `<strong>Design Moment:</strong> ${M.toFixed(2)} kN·m/m<br><strong>Required Reinforcement:</strong> Calculate using M/(0.87×fy×d)`;
+        saveToHistory('Slab Design', {w:inp1, L:inp2, alpha:inp3}, `M = ${M.toFixed(2)} kN·m/m`);
+        result += `<br><a href="https://www.amazon.com/s?k=Rebar+Steel" target="_blank" class="amazon-link">🛒 Reinforcement Steel</a>`;
+    }
+    else if(calcId === 'truss_analysis') {
+        const theta_rad = inp2 * Math.PI / 180;
+        const F_horizontal = inp1 / Math.tan(theta_rad);
+        const F_member = inp1 / Math.sin(theta_rad);
+        result = `<strong>Member Force:</strong> ${F_member.toFixed(2)} kN<br><strong>Horizontal Component:</strong> ${F_horizontal.toFixed(2)} kN`;
+        saveToHistory('Truss Analysis', {P:inp1, theta:inp2, L:inp3}, `F = ${F_member.toFixed(2)} kN`);
+        result += `<br><a href="https://www.amazon.com/s?k=Truss+Analysis+Software" target="_blank" class="amazon-link">🛒 Structural Analysis Software</a>`;
+    }
+    else if(calcId === 'settlement') {
+        const S = (inp1 / (1 + inp2)) * inp3 * Math.log10((inp5 + inp4) / inp5);
+        result = `<strong>Settlement:</strong> ${(S*1000).toFixed(2)} mm<br><strong>Consolidation Settlement</strong>`;
+        saveToHistory('Settlement Calculation', {Cc:inp1, e0:inp2, H:inp3, dsigma:inp4}, `S = ${(S*1000).toFixed(2)} mm`);
+        result += `<br><a href="https://www.amazon.com/s?k=Soil+Testing+Equipment" target="_blank" class="amazon-link">🛒 Geotechnical Testing Equipment</a>`;
+    }
+    else if(calcId === 'slope_stability') {
+        const beta_rad = inp3 * Math.PI / 180;
+        const phi_rad = inp2 * Math.PI / 180;
+        const FS = (inp1 + inp4 * inp5 * Math.cos(beta_rad) * Math.tan(phi_rad)) / (inp4 * inp5 * Math.sin(beta_rad));
+        result = `<strong>Factor of Safety:</strong> ${FS.toFixed(2)}<br><strong>Slope Stability:</strong> ${FS >= 1.5 ? 'Safe' : FS >= 1.2 ? 'Marginally Safe' : 'Unsafe'}`;
+        saveToHistory('Slope Stability', {c:inp1, phi:inp2, beta:inp3}, `FS = ${FS.toFixed(2)}`);
+        result += `<br><a href="https://www.amazon.com/s?k=Slope+Stability+Analysis" target="_blank" class="amazon-link">🛒 Geotechnical Software</a>`;
+    }
+    else if(calcId === 'seepage') {
+        const q = inp1 * inp2 * inp3;
+        result = `<strong>Seepage Flow Rate:</strong> ${(q*1000).toFixed(4)} L/s<br><strong>Daily Flow:</strong> ${(q*86400).toFixed(2)} m³/day`;
+        saveToHistory('Seepage Flow', {k:inp1, i:inp2, A:inp3}, `q = ${(q*1000).toFixed(4)} L/s`);
+        result += `<br><a href="https://www.amazon.com/s?k=Permeameter" target="_blank" class="amazon-link">🛒 Permeability Testing Equipment</a>`;
+    }
+    else if(calcId === 'CBR') {
+        const CBR = (inp1 / inp2) * 100;
+        result = `<strong>CBR Value:</strong> ${CBR.toFixed(1)}%<br><strong>Pavement Quality:</strong> ${CBR >= 10 ? 'Excellent' : CBR >= 5 ? 'Good' : CBR >= 2 ? 'Fair' : 'Poor'}`;
+        saveToHistory('CBR Test', {test_load:inp1, std_load:inp2}, `CBR = ${CBR.toFixed(1)}%`);
+        result += `<br><a href="https://www.amazon.com/s?k=CBR+Testing+Equipment" target="_blank" class="amazon-link">🛒 CBR Test Apparatus</a>`;
+    }
+    else if(calcId === 'manning') {
+        const Q = (1/inp1) * inp2 * Math.pow(inp3, 2/3) * Math.pow(inp4, 0.5);
+        result = `<strong>Flow Rate Q:</strong> ${Q.toFixed(2)} m³/s<br><strong>Velocity:</strong> ${(Q/inp2).toFixed(2)} m/s`;
+        saveToHistory('Manning Equation', {n:inp1, A:inp2, R:inp3, S:inp4}, `Q = ${Q.toFixed(2)} m³/s`);
+        result += `<br><a href="https://www.amazon.com/s?k=Flow+Meter" target="_blank" class="amazon-link">🛒 Flow Measurement Equipment</a>`;
+    }
+    else if(calcId === 'weir_flow') {
+        const Q = inp1 * inp2 * Math.pow(inp3, 1.5);
+        result = `<strong>Flow Rate Q:</strong> ${Q.toFixed(3)} m³/s<br><strong>Flow:</strong> ${(Q*1000).toFixed(2)} L/s`;
+        saveToHistory('Weir Flow', {C:inp1, L:inp2, H:inp3}, `Q = ${Q.toFixed(3)} m³/s`);
+        result += `<br><a href="https://www.amazon.com/s?k=Weir+Flow+Meter" target="_blank" class="amazon-link">🛒 Flow Measurement Equipment</a>`;
+    }
+    else if(calcId === 'pipe_flow') {
+        const V = 0.85 * inp1 * Math.pow(inp2, 0.63) * Math.pow(inp3, 0.54);
+        result = `<strong>Flow Velocity:</strong> ${V.toFixed(3)} m/s<br><strong>Flow Rate:</strong> ${(V * Math.PI * Math.pow(inp2, 2)).toFixed(4)} m³/s`;
+        saveToHistory('Pipe Flow', {C:inp1, R:inp2, S:inp3}, `V = ${V.toFixed(3)} m/s`);
+        result += `<br><a href="https://www.amazon.com/s?k=PVC+Pipe" target="_blank" class="amazon-link">🛒 Piping Materials</a>`;
+    }
+    else if(calcId === 'water_demand') {
+        const Q = inp1 * inp2;
+        result = `<strong>Total Water Demand:</strong> ${(Q/1000).toFixed(0)} m³/day<br><strong>Peak Demand:</strong> ${(Q*1.8/1000).toFixed(0)} m³/day (1.8× factor)`;
+        saveToHistory('Water Demand', {P:inp1, q:inp2}, `Q = ${(Q/1000).toFixed(0)} m³/day`);
+        result += `<br><a href="https://www.amazon.com/s?k=Water+Distribution+Equipment" target="_blank" class="amazon-link">🛒 Water Supply Equipment</a>`;
+    }
+    else if(calcId === 'BOD') {
+        const BOD = (inp1 - inp2) / inp3;
+        result = `<strong>BOD:</strong> ${BOD.toFixed(1)} mg/L<br><strong>Water Quality:</strong> ${BOD < 3 ? 'Excellent' : BOD < 6 ? 'Good' : BOD < 10 ? 'Fair' : 'Poor'}`;
+        saveToHistory('BOD Calculation', {D1:inp1, D2:inp2, P:inp3}, `BOD = ${BOD.toFixed(1)} mg/L`);
+        result += `<br><a href="https://www.amazon.com/s?k=BOD+Meter" target="_blank" class="amazon-link">🛒 Water Quality Testing Equipment</a>`;
+    }
+    else if(calcId === 'traffic_volume') {
+        const AADT = (inp1 * inp2) / 365;
+        result = `<strong>AADT:</strong> ${AADT.toFixed(0)} vehicles/day<br><strong>Peak Hour Volume:</strong> ${(AADT * 0.1).toFixed(0)} vehicles/hour (10% factor)`;
+        saveToHistory('Traffic Volume', {volume:inp1, factor:inp2}, `AADT = ${AADT.toFixed(0)} veh/day`);
+        result += `<br><a href="https://www.amazon.com/s?k=Traffic+Counter" target="_blank" class="amazon-link">🛒 Traffic Counting Equipment</a>`;
+    }
+    
+    // ============ ELECTRICAL ENGINEERING ============
+    else if(calcId === 'ohms_law') {
+        const I = inp1 / inp2;
+        result = `<strong>Current I:</strong> ${I.toFixed(2)} A<br><strong>Voltage:</strong> ${inp1} V<br><strong>Resistance:</strong> ${inp2} Ω`;
+        saveToHistory('Ohm\'s Law', {V:inp1, R:inp2}, `I = ${I.toFixed(2)} A`);
+        result += `<br><a href="https://www.amazon.com/s?k=Multimeter" target="_blank" class="amazon-link">🛒 Multimeters</a>`;
+    }
+    else if(calcId === 'power_calc') {
+        const P = inp1 * inp2;
+        result = `<strong>Power P:</strong> ${P.toFixed(2)} W<br><strong>Energy (1hr):</strong> ${(P/1000).toFixed(3)} kWh`;
+        saveToHistory('Power Calculation', {V:inp1, I:inp2}, `P = ${P.toFixed(2)} W`);
+        result += `<br><a href="https://www.amazon.com/s?k=Power+Analyzer" target="_blank" class="amazon-link">🛒 Power Quality Analyzers</a>`;
+    }
+    else if(calcId === 'series_resistance') {
+        const Rtotal = inp1 + inp2 + inp3;
+        result = `<strong>Total Resistance:</strong> ${Rtotal.toFixed(2)} Ω`;
+        saveToHistory('Series Resistance', {R1:inp1, R2:inp2, R3:inp3}, `Rtotal = ${Rtotal.toFixed(2)} Ω`);
+        result += `<br><a href="https://www.amazon.com/s?k=Resistor+Kit" target="_blank" class="amazon-link">🛒 Resistor Sets</a>`;
+    }
+    else if(calcId === 'parallel_resistance') {
+        const Rtotal = 1 / (1/inp1 + 1/inp2);
+        result = `<strong>Equivalent Resistance:</strong> ${Rtotal.toFixed(2)} Ω`;
+        saveToHistory('Parallel Resistance', {R1:inp1, R2:inp2}, `Rtotal = ${Rtotal.toFixed(2)} Ω`);
+        result += `<br><a href="https://www.amazon.com/s?k=Resistor+Kit" target="_blank" class="amazon-link">🛒 Resistor Sets</a>`;
+    }
+    else if(calcId === 'capacitor_series') {
+        const Ctotal = 1 / (1/inp1 + 1/inp2);
+        result = `<strong>Total Capacitance:</strong> ${Ctotal.toFixed(2)} μF<br><strong>Equivalent:</strong> Less than smallest capacitor`;
+        saveToHistory('Capacitors in Series', {C1:inp1, C2:inp2}, `Ctotal = ${Ctotal.toFixed(2)} μF`);
+        result += `<br><a href="https://www.amazon.com/s?k=Capacitor+Kit" target="_blank" class="amazon-link">🛒 Capacitor Sets</a>`;
+    }
+    else if(calcId === 'inductor_series') {
+        const Ltotal = inp1 + inp2 + inp3;
+        result = `<strong>Total Inductance:</strong> ${Ltotal.toFixed(1)} mH<br><strong>Sum of all inductors</strong>`;
+        saveToHistory('Inductors in Series', {L1:inp1, L2:inp2, L3:inp3}, `Ltotal = ${Ltotal.toFixed(1)} mH`);
+        result += `<br><a href="https://www.amazon.com/s?k=Inductor+Kit" target="_blank" class="amazon-link">🛒 Inductor Sets</a>`;
+    }
+    else if(calcId === 'rc_time') {
+        const tau = (inp1 * inp2) / 1000000;
+        result = `<strong>Time Constant τ:</strong> ${tau.toFixed(4)} s<br><strong>5τ (99% charge):</strong> ${(tau*5).toFixed(3)} s`;
+        saveToHistory('RC Time Constant', {R:inp1, C:inp2}, `τ = ${tau.toFixed(4)} s`);
+        result += `<br><a href="https://www.amazon.com/s?k=Capacitor+Meter" target="_blank" class="amazon-link">🛒 Capacitance Measurement</a>`;
+    }
+    else if(calcId === 'rl_time') {
+        const tau = inp1 / inp2;
+        result = `<strong>Time Constant τ:</strong> ${tau.toFixed(4)} s<br><strong>5τ (99% current):</strong> ${(tau*5).toFixed(3)} s`;
+        saveToHistory('RL Time Constant', {L:inp1, R:inp2}, `τ = ${tau.toFixed(4)} s`);
+        result += `<br><a href="https://www.amazon.com/s?k=Inductance+Meter" target="_blank" class="amazon-link">🛒 Inductance Measurement</a>`;
+    }
+    else if(calcId === 'resonance') {
+        const f0 = 1 / (2 * Math.PI * Math.sqrt(inp1 * inp2));
+        result = `<strong>Resonant Frequency:</strong> ${f0.toFixed(2)} Hz<br><strong>Angular Frequency:</strong> ${(2*Math.PI*f0).toFixed(2)} rad/s`;
+        saveToHistory('Resonant Frequency', {L:inp1, C:inp2}, `f₀ = ${f0.toFixed(2)} Hz`);
+        result += `<br><a href="https://www.amazon.com/s?k=Frequency+Counter" target="_blank" class="amazon-link">🛒 Frequency Counter</a>`;
+    }
+    else if(calcId === 'impedance') {
+        const Z = Math.sqrt(Math.pow(inp1, 2) + Math.pow(inp2 - inp3, 2));
+        const angle = Math.atan((inp2 - inp3) / inp1) * 180 / Math.PI;
+        result = `<strong>Impedance Z:</strong> ${Z.toFixed(2)} Ω<br><strong>Phase Angle:</strong> ${angle.toFixed(1)}°`;
+        saveToHistory('AC Impedance', {R:inp1, XL:inp2, XC:inp3}, `Z = ${Z.toFixed(2)} Ω`);
+        result += `<br><a href="https://www.amazon.com/s?k=Impedance+Analyzer" target="_blank" class="amazon-link">🛒 Impedance Measurement Tools</a>`;
+    }
+    else if(calcId === 'power_factor') {
+        const pf = inp1 / inp2;
+        const angle = Math.acos(pf) * 180 / Math.PI;
+        result = `<strong>Power Factor:</strong> ${pf.toFixed(3)}<br><strong>Phase Angle:</strong> ${angle.toFixed(1)}°`;
+        saveToHistory('Power Factor', {P:inp1, S:inp2}, `PF = ${pf.toFixed(3)}`);
+        result += `<br><a href="https://www.amazon.com/s?k=Power+Factor+Meter" target="_blank" class="amazon-link">🛒 Power Factor Meters</a>`;
+    }
+    else if(calcId === 'three_phase') {
+        const P = Math.sqrt(3) * inp1 * inp2 * inp3;
+        result = `<strong>Real Power:</strong> ${(P/1000).toFixed(2)} kW<br><strong>Apparent Power:</strong> ${(P/(inp3*1000)).toFixed(2)} kVA`;
+        saveToHistory('Three Phase Power', {VL:inp1, IL:inp2, pf:inp3}, `P = ${(P/1000).toFixed(2)} kW`);
+        result += `<br><a href="https://www.amazon.com/s?k=Three+Phase+Meter" target="_blank" class="amazon-link">🛒 3-Phase Power Meters</a>`;
+    }
+    else if(calcId === 'transformer') {
+        const V2 = inp1 * inp3 / inp2;
+        result = `<strong>Secondary Voltage:</strong> ${V2.toFixed(2)} V<br><strong>Turns Ratio:</strong> ${(inp2/inp3).toFixed(2)}:1`;
+        saveToHistory('Transformer Ratio', {V1:inp1, N1:inp2, N2:inp3}, `V₂ = ${V2.toFixed(2)} V`);
+        result += `<br><a href="https://www.amazon.com/s?k=Transformer" target="_blank" class="amazon-link">🛒 Transformers</a>`;
+    }
+    else if(calcId === 'motor_torque') {
+        const T = inp1 * inp2 * inp3;
+        result = `<strong>Motor Torque:</strong> ${T.toFixed(2)} N·m<br><strong>Power @ 1500 RPM:</strong> ${(2*Math.PI*1500*T/60000).toFixed(2)} kW`;
+        saveToHistory('Motor Torque', {K:inp1, Phi:inp2, Ia:inp3}, `T = ${T.toFixed(2)} N·m`);
+        result += `<br><a href="https://www.amazon.com/s?k=DC+Motor" target="_blank" class="amazon-link">🛒 DC Motors</a>`;
+    }
+    else if(calcId === 'motor_speed') {
+        const N = (inp1 - inp2 * inp3) / inp4;
+        result = `<strong>Motor Speed:</strong> ${N.toFixed(0)} RPM<br><strong>Back EMF:</strong> ${(inp1 - inp2*inp3).toFixed(2)} V`;
+        saveToHistory('Motor Speed', {V:inp1, Ia:inp2, Ra:inp3, KPhi:inp4}, `N = ${N.toFixed(0)} RPM`);
+        result += `<br><a href="https://www.amazon.com/s?k=Motor+Speed+Controller" target="_blank" class="amazon-link">🛒 Speed Controllers</a>`;
+    }
+    else if(calcId === 'efficiency') {
+        const eff = (inp1 / inp2) * 100;
+        const loss = inp2 - inp1;
+        result = `<strong>Efficiency η:</strong> ${eff.toFixed(2)}%<br><strong>Power Loss:</strong> ${loss.toFixed(2)} W`;
+        saveToHistory('Efficiency', {Pout:inp1, Pin:inp2}, `η = ${eff.toFixed(2)}%`);
+        result += `<br><a href="https://www.amazon.com/s?k=Power+Quality+Analyzer" target="_blank" class="amazon-link">🛒 Power Analyzers</a>`;
+    }
+    else if(calcId === 'voltage_divider') {
+        const Vout = inp1 * inp3 / (inp2 + inp3);
+        result = `<strong>Output Voltage:</strong> ${Vout.toFixed(2)} V<br><strong>Voltage Ratio:</strong> ${(Vout/inp1*100).toFixed(1)}%`;
+        saveToHistory('Voltage Divider', {Vin:inp1, R1:inp2, R2:inp3}, `Vout = ${Vout.toFixed(2)} V`);
+        result += `<br><a href="https://www.amazon.com/s?k=Resistor+Kit" target="_blank" class="amazon-link">🛒 Resistor Sets</a>`;
+    }
+    else if(calcId === 'current_divider') {
+        const I1 = inp1 * inp3 / (inp2 + inp3);
+        result = `<strong>Branch Current I₁:</strong> ${I1.toFixed(3)} A<br><strong>Branch Current I₂:</strong> ${(inp1-I1).toFixed(3)} A`;
+        saveToHistory('Current Divider', {Itotal:inp1, R1:inp2, R2:inp3}, `I1 = ${I1.toFixed(3)} A`);
+        result += `<br><a href="https://www.amazon.com/s?k=Current+Meter" target="_blank" class="amazon-link">🛒 Current Measurement Tools</a>`;
+    }
+    else if(calcId === 'wheatstone') {
+        const R4 = (inp2 * inp3) / inp1;
+        const balanced = Math.abs(inp1 * R4 - inp2 * inp3) < 0.01 ? 'Balanced' : 'Unbalanced';
+        result = `<strong>Unknown Resistance R₄:</strong> ${R4.toFixed(2)} Ω<br><strong>Bridge Status:</strong> ${balanced}`;
+        saveToHistory('Wheatstone Bridge', {R1:inp1, R2:inp2, R3:inp3}, `R4 = ${R4.toFixed(2)} Ω`);
+        result += `<br><a href="https://www.amazon.com/s?k=Wheatstone+Bridge" target="_blank" class="amazon-link">🛒 Bridge Measurement Equipment</a>`;
+    }
+    else if(calcId === 'line_loss') {
+        const Ploss = Math.pow(inp1, 2) * inp2;
+        result = `<strong>Power Loss:</strong> ${(Ploss/1000).toFixed(2)} kW<br><strong>Energy Loss (24h):</strong> ${(Ploss*24/1000).toFixed(1)} kWh`;
+        saveToHistory('Transmission Loss', {I:inp1, R:inp2}, `Ploss = ${(Ploss/1000).toFixed(2)} kW`);
+        result += `<br><a href="https://www.amazon.com/s?k=Power+Cable" target="_blank" class="amazon-link">🛒 Power Transmission Cable</a>`;
+    }
+    else if(calcId === 'fault_current') {
+        const If = inp1 / inp2;
+        result = `<strong>Fault Current:</strong> ${If.toFixed(0)} A<br><strong>Fault Level:</strong> ${(inp1*If/1000000).toFixed(2)} MVA`;
+        saveToHistory('Fault Current', {V:inp1, Z:inp2}, `If = ${If.toFixed(0)} A`);
+        result += `<br><a href="https://www.amazon.com/s?k=Circuit+Breaker" target="_blank" class="amazon-link">🛒 Protection Equipment</a>`;
+    }
+    else if(calcId === 'relay_setting') {
+        const PSM = inp1 / inp2;
+        result = `<strong>Plug Setting Multiplier:</strong> ${PSM.toFixed(2)}<br><strong>Coordination:</strong> ${PSM >= 2 ? 'Good' : 'Review Required'}`;
+        saveToHistory('Relay Setting', {If:inp1, Ip:inp2}, `PSM = ${PSM.toFixed(2)}`);
+        result += `<br><a href="https://www.amazon.com/s?k=Protective+Relay" target="_blank" class="amazon-link">🛒 Protection Relays</a>`;
+    }
+    else if(calcId === 'regulation') {
+        const VR = ((inp1 - inp2) / inp2) * 100;
+        result = `<strong>Voltage Regulation:</strong> ${VR.toFixed(2)}%<br><strong>Performance:</strong> ${VR < 5 ? 'Excellent' : VR < 10 ? 'Good' : 'Poor'}`;
+        saveToHistory('Voltage Regulation', {Vnl:inp1, Vfl:inp2}, `VR = ${VR.toFixed(2)}%`);
+        result += `<br><a href="https://www.amazon.com/s?k=Voltage+Regulator" target="_blank" class="amazon-link">🛒 Voltage Regulators</a>`;
+    }
+    else if(calcId === 'skin_depth') {
+        const delta = Math.sqrt(2 / (inp1 * inp2 * inp3));
+        result = `<strong>Skin Depth δ:</strong> ${(delta*1000).toFixed(4)} mm<br><strong>Effective Conductor Depth</strong>`;
+        saveToHistory('Skin Depth', {omega:inp1, mu:inp2, sigma:inp3}, `δ = ${(delta*1000).toFixed(4)} mm`);
+        result += `<br><a href="https://www.amazon.com/s?k=Litz+Wire" target="_blank" class="amazon-link">🛒 High Frequency Conductors</a>`;
+    }
+    else if(calcId === 'antenna_gain') {
+        const G = (4 * Math.PI * inp1) / Math.pow(inp2, 2);
+        const G_dB = 10 * Math.log10(G);
+        result = `<strong>Antenna Gain:</strong> ${G.toFixed(2)} (${G_dB.toFixed(1)} dB)<br><strong>Directivity Gain</strong>`;
+        saveToHistory('Antenna Gain', {A:inp1, lambda:inp2}, `G = ${G_dB.toFixed(1)} dB`);
+        result += `<br><a href="https://www.amazon.com/s?k=Antenna+Analyzer" target="_blank" class="amazon-link">🛒 Antenna Testing Equipment</a>`;
+    }
+    
+    // ============ INDUSTRIAL ENGINEERING ============
+    else if(calcId === 'eoq') {
+        const eoq = Math.sqrt((2 * inp1 * inp2) / inp3);
+        const orders = inp1 / eoq;
+        result = `<strong>Economic Order Quantity:</strong> ${eoq.toFixed(0)} units<br><strong>Number of Orders/Year:</strong> ${orders.toFixed(1)}`;
+        saveToHistory('EOQ', {D:inp1, S:inp2, H:inp3}, `EOQ = ${eoq.toFixed(0)} units`);
+        result += `<br><a href="https://www.amazon.com/s?k=Inventory+Management+Software" target="_blank" class="amazon-link">🛒 Inventory Management Tools</a>`;
+    }
+    else if(calcId === 'reorder_point') {
+        const rop = inp1 * inp2 + inp3;
+        result = `<strong>Reorder Point:</strong> ${rop.toFixed(0)} units<br><strong>Lead Time Demand:</strong> ${(inp1*inp2).toFixed(0)} units`;
+        saveToHistory('Reorder Point', {d:inp1, L:inp2, SS:inp3}, `ROP = ${rop.toFixed(0)} units`);
+        result += `<br><a href="https://www.amazon.com/s?k=Inventory+Management" target="_blank" class="amazon-link">🛒 Inventory Tools</a>`;
+    }
+    else if(calcId === 'safety_stock') {
+        const SS = inp1 * inp2 * Math.sqrt(inp3);
+        result = `<strong>Safety Stock:</strong> ${SS.toFixed(0)} units<br><strong>Service Level:</strong> ${inp1 === 1.65 ? '95%' : inp1 === 1.96 ? '97.5%' : inp1 === 2.33 ? '99%' : 'Custom'}`;
+        saveToHistory('Safety Stock', {Z:inp1, sigma:inp2, L:inp3}, `SS = ${SS.toFixed(0)} units`);
+        result += `<br><a href="https://www.amazon.com/s?k=Inventory+Software" target="_blank" class="amazon-link">🛒 Inventory Software</a>`;
+    }
+    else if(calcId === 'abc_analysis') {
+        const percentage = (inp1 / inp2) * 100;
+        const category = percentage >= 70 ? 'A - High Value' : percentage >= 20 ? 'B - Medium Value' : 'C - Low Value';
+        result = `<strong>Item Percentage:</strong> ${percentage.toFixed(1)}%<br><strong>ABC Category:</strong> ${category}`;
+        saveToHistory('ABC Analysis', {value:inp1, total:inp2}, `${percentage.toFixed(1)}% - ${category}`);
+        result += `<br><a href="https://www.amazon.com/s?k=ABC+Analysis+Software" target="_blank" class="amazon-link">🛒 Analysis Software</a>`;
+    }
+    else if(calcId === 'line_balancing') {
+        const E = (inp1 / (inp2 * inp3)) * 100;
+        const idle = inp2 * inp3 - inp1;
+        result = `<strong>Line Efficiency:</strong> ${E.toFixed(2)}%<br><strong>Idle Time:</strong> ${idle.toFixed(1)} min<br><strong>Performance:</strong> ${E >= 85 ? 'Excellent' : E >= 75 ? 'Good' : 'Needs Improvement'}`;
+        saveToHistory('Line Balancing', {t:inp1, n:inp2, C:inp3}, `E = ${E.toFixed(2)}%`);
+        result += `<br><a href="https://www.amazon.com/s?k=Assembly+Line+Equipment" target="_blank" class="amazon-link">🛒 Assembly Equipment</a>`;
+    }
+    else if(calcId === 'takt_time') {
+        const takt = inp1 / inp2;
+        result = `<strong>Takt Time:</strong> ${takt.toFixed(1)} seconds/unit<br><strong>Production Rate:</strong> ${(3600/takt).toFixed(1)} units/hour`;
+        saveToHistory('Takt Time', {time:inp1, demand:inp2}, `Takt = ${takt.toFixed(1)} s`);
+        result += `<br><a href="https://www.amazon.com/s?k=Production+Timer" target="_blank" class="amazon-link">🛒 Production Tools</a>`;
+    }
+    else if(calcId === 'oee') {
+        const oee = (inp1/100) * (inp2/100) * (inp3/100) * 100;
+        result = `<strong>OEE:</strong> ${oee.toFixed(2)}%<br><strong>World Class:</strong> ${oee >= 85 ? 'YES ✓' : 'NO (Target: 85%)'}`;
+        saveToHistory('OEE', {A:inp1, P:inp2, Q:inp3}, `OEE = ${oee.toFixed(2)}%`);
+        result += `<br><a href="https://www.amazon.com/s?k=OEE+Software" target="_blank" class="amazon-link">🛒 OEE Monitoring</a>`;
+    }
+    else if(calcId === 'learning_curve') {
+        const b = Math.log(inp3/100) / Math.log(2);
+        const Tn = inp1 * Math.pow(inp2, b);
+        result = `<strong>Time for Unit ${inp2}:</strong> ${Tn.toFixed(2)} hrs<br><strong>Learning Rate:</strong> ${inp3}%<br><strong>Total Time (cumulative):</strong> ${(Tn * inp2 / 2).toFixed(1)} hrs (approx)`;
+        saveToHistory('Learning Curve', {T1:inp1, n:inp2, rate:inp3}, `T${inp2} = ${Tn.toFixed(2)} hrs`);
+        result += `<br><a href="https://www.amazon.com/s?k=Time+Study+Equipment" target="_blank" class="amazon-link">🛒 Time Study Tools</a>`;
+    }
+    else if(calcId === 'breakeven') {
+        const bep = inp1 / (inp2 - inp3);
+        const revenue = bep * inp2;
+        result = `<strong>Break-Even Point:</strong> ${bep.toFixed(0)} units<br><strong>Break-Even Revenue:</strong> $${revenue.toFixed(0)}`;
+        saveToHistory('Break-Even Analysis', {FC:inp1, P:inp2, VC:inp3}, `BEP = ${bep.toFixed(0)} units`);
+        result += `<br><a href="https://www.amazon.com/s?k=Business+Calculator" target="_blank" class="amazon-link">🛒 Business Calculators</a>`;
+    }
+    else if(calcId === 'productivity') {
+        const PI = inp1 / inp2;
+        result = `<strong>Productivity Index:</strong> ${PI.toFixed(2)} units/hour<br><strong>Output Rate:</strong> ${inp1} units in ${inp2} hours`;
+        saveToHistory('Productivity Index', {output:inp1, input:inp2}, `PI = ${PI.toFixed(2)}`);
+        result += `<br><a href="https://www.amazon.com/s?k=Productivity+Software" target="_blank" class="amazon-link">🛒 Productivity Tools</a>`;
+    }
+    else if(calcId === 'cpk') {
+        const cpu = (inp1 - inp3) / (3 * inp4);
+        const cpl = (inp3 - inp2) / (3 * inp4);
+        const cpk = Math.min(cpu, cpl);
+        result = `<strong>Cpk:</strong> ${cpk.toFixed(3)}<br><strong>Process Capability:</strong> ${cpk >= 1.33 ? 'Capable' : cpk >= 1.0 ? 'Marginally Capable' : 'Not Capable'}`;
+        saveToHistory('Process Capability Cpk', {USL:inp1, LSL:inp2, mu:inp3, sigma:inp4}, `Cpk = ${cpk.toFixed(3)}`);
+        result += `<br><a href="https://www.amazon.com/s?k=SPC+Software" target="_blank" class="amazon-link">🛒 SPC Software</a>`;
+    }
+    else if(calcId === 'six_sigma') {
+        const DPMO = (inp1 / inp2) * 1000000;
+        const sigma = DPMO < 3.4 ? '6σ' : DPMO < 233 ? '5σ' : DPMO < 6210 ? '4σ' : DPMO < 66807 ? '3σ' : '<3σ';
+        result = `<strong>DPMO:</strong> ${DPMO.toFixed(0)}<br><strong>Sigma Level:</strong> ${sigma}<br><strong>Quality:</strong> ${DPMO < 1000 ? 'World Class' : DPMO < 10000 ? 'Excellent' : 'Needs Improvement'}`;
+        saveToHistory('Six Sigma DPMO', {defects:inp1, opportunities:inp2}, `DPMO = ${DPMO.toFixed(0)}`);
+        result += `<br><a href="https://www.amazon.com/s?k=Six+Sigma+Training" target="_blank" class="amazon-link">🛒 Six Sigma Resources</a>`;
+    }
+    else if(calcId === 'mtbf') {
+        const mtbf = inp1 / inp2;
+        result = `<strong>MTBF:</strong> ${mtbf.toFixed(1)} hours<br><strong>Failure Rate:</strong> ${(1/mtbf*1000).toFixed(3)} per 1000 hrs`;
+        saveToHistory('MTBF', {time:inp1, failures:inp2}, `MTBF = ${mtbf.toFixed(1)} hrs`);
+        result += `<br><a href="https://www.amazon.com/s?k=Reliability+Software" target="_blank" class="amazon-link">🛒 Reliability Software</a>`;
+    }
+    else if(calcId === 'mttr') {
+        const MTTR = inp1 / inp2;
+        result = `<strong>MTTR:</strong> ${MTTR.toFixed(2)} hours<br><strong>Repair Rate:</strong> ${(1/MTTR).toFixed(3)} repairs/hour`;
+        saveToHistory('MTTR', {time:inp1, repairs:inp2}, `MTTR = ${MTTR.toFixed(2)} hrs`);
+        result += `<br><a href="https://www.amazon.com/s?k=Maintenance+Management+Software" target="_blank" class="amazon-link">🛒 Maintenance Tools</a>`;
+    }
+    else if(calcId === 'availability') {
+        const A = (inp1 / (inp1 + inp2)) * 100;
+        result = `<strong>System Availability:</strong> ${A.toFixed(2)}%<br><strong>Downtime:</strong> ${((100-A)*24*365/100).toFixed(0)} hours/year<br><strong>Performance:</strong> ${A >= 99 ? 'Excellent' : A >= 95 ? 'Good' : 'Needs Improvement'}`;
+        saveToHistory('System Availability', {MTBF:inp1, MTTR:inp2}, `A = ${A.toFixed(2)}%`);
+        result += `<br><a href="https://www.amazon.com/s?k=CMMS+Software" target="_blank" class="amazon-link">🛒 Asset Management Software</a>`;
+    }
+    else {
+        result = '<strong>Calculator not implemented yet.</strong>';
+    }
+    
+    document.getElementById(`result_${calcId}`).innerHTML = result;
+    document.getElementById(`result_${calcId}`).style.display = 'block';
+}
+
+// PART 7: Export Functions
+function exportCalcPDF(title, resultId) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(20);
+    doc.setTextColor(0, 209, 178);
+    doc.text('ChemEFlow Calculation Report', 20, 20);
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text(title, 20, 35);
+    doc.setFontSize(12);
+    const resultElement = document.getElementById(resultId);
+    const resultText = resultElement ? resultElement.innerText.split('🛒')[0] : 'No results';
+    const lines = doc.splitTextToSize(resultText, 170);
+    doc.text(lines, 20, 50);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 280);
+    doc.save(`${title.replace(/ /g, '_')}.pdf`);
+    showToast('PDF exported successfully!');
+}
+
+function exportCalcExcel(title) {
+    const data = [[title, 'ChemEFlow Report'], ['Generated', new Date().toLocaleString()]];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Report');
+    XLSX.writeFile(wb, `${title.replace(/ /g, '_')}.xlsx`);
+    showToast('Excel exported successfully!');
+}
+
+function shareCalc(title) {
+    const url = `${window.location.href.split('?')[0]}?calc=${encodeURIComponent(title)}&t=${Date.now()}`;
+    document.getElementById('shareLink').value = url;
+    openModal('shareModal');
+}
+
+function copyShareLink() {
+    const link = document.getElementById('shareLink');
+    link.select();
+    document.execCommand('copy');
+    showToast('Link copied to clipboard!');
+}
+
+// Keyboard Shortcuts
+document.addEventListener('keydown', (e) => {
+    if((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        document.getElementById('searchInput').focus();
+    }
+});
+
+// Initialize on Load
+window.addEventListener('load', () => {
+    const savedTheme = storage.load('theme');
+    if(savedTheme && savedTheme !== 'default') changeTheme(savedTheme);
+    console.log('%cChemEFlow v6.0 PRO Loaded ✓', 'color: #00d1b2; font-size: 20px; font-weight: bold;');
+    console.log('%c90+ Calculators Active Across All Engineering Disciplines!', 'color: #3b82f6; font-size: 14px;');
+});
 </script>
 
 </body>
