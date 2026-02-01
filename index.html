@@ -3,7 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChemEFlow | All-In-One Engineering Platform v6.0</title>
+    <title>chemEFlow | Next-Gen Engineering Platform</title>
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="chemEFlow">
+    <meta name="application-name" content="chemEFlow">
+    <meta name="msapplication-TileColor" content="#0a0e1a">
+    <meta name="theme-color" content="#00f0ff">
+    
     
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%232563eb'/%3E%3Cstop offset='100%25' style='stop-color:%231e40af'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M 130 40 Q 130 20 140 10 Q 150 20 150 40 Q 150 55 140 60 Q 130 55 130 40 Z' fill='url(%23a)'/%3E%3Crect x='75' y='125' width='15' height='25' rx='2' fill='%233b82f6'/%3E%3Crect x='115' y='100' width='15' height='50' rx='2' fill='%2314b8a6'/%3E%3C/svg%3E">
     
@@ -12,14 +22,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Orbitron:wght@900&display=swap');
         
         :root { 
-            --primary: #00d1b2; --dark: #0f172a; --sidebar: #0b1120; 
-            --light: #f8fafc; --card: #ffffff; --text: #1e293b; --amazon: #ff9900;
+            --primary: #00f0ff; --dark: #0a0e1a; --sidebar: #141927; 
+            --light: #0a0e1a; --card: rgba(20, 25, 39, 0.8); --text: #e8f0ff; --amazon: #ff9900;
         }
 
-        .dark-theme { --light: #0f172a; --sidebar: #020617; --card: #1e293b; --text: #f8fafc; }
+        .dark-theme { --light: #0a0e1a; --sidebar: #141927; --card: rgba(20, 25, 39, 0.8); --text: #e8f0ff; }
         .theme-blue { --primary: #3b82f6; }
         .theme-purple { --primary: #a855f7; }
         .theme-green { --primary: #10b981; }
@@ -140,9 +150,200 @@
             .main-content { padding: 0; }
             .calc-card, .card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
         }
+
+        /* LIQUID BACKGROUND */
+        .liquid-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .liquid-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float 20s infinite ease-in-out;
+        }
+        .liquid-orb:nth-child(1) {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, #00f0ff 0%, transparent 70%);
+            top: -100px;
+            left: -100px;
+            animation-duration: 25s;
+        }
+        .liquid-orb:nth-child(2) {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, #0080ff 0%, transparent 70%);
+            top: 40%;
+            right: -150px;
+            animation-duration: 30s;
+        }
+        .liquid-orb:nth-child(3) {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, #a000ff 0%, transparent 70%);
+            bottom: -100px;
+            left: 30%;
+            animation-duration: 35s;
+        }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, -50px) scale(1.1); }
+            66% { transform: translate(-30px, 30px) scale(0.9); }
+        }
+
+        /* SPLASH SCREEN */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0e1a;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: splash-fadeout 0.8s ease 2.5s forwards;
+        }
+        @keyframes splash-fadeout {
+            to { opacity: 0; pointer-events: none; }
+        }
+        .splash-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 52px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #00f0ff 0%, #0080ff 50%, #a000ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: text-appear 1s ease;
+        }
+        @keyframes text-appear {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* TOGGLE SWITCH IN TOP BAR */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(20, 25, 39, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 50px;
+            padding: 5px;
+            display: flex;
+            gap: 5px;
+        }
+        .theme-toggle button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: #8a9fb8;
+        }
+        .theme-toggle button.active {
+            background: var(--primary);
+            color: #0a0e1a;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+        }
+
+        /* GLASSMORPHISM */
+        .sidebar {
+            background: rgba(20, 25, 39, 0.8) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .calc-card, .card {
+            background: rgba(20, 25, 39, 0.8) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* LIGHT MODE */
+        body:not(.dark-theme) {
+            --primary: #00d1b2;
+            --light: #f8fafc;
+            --dark: #f8fafc;
+            --sidebar: rgba(255, 255, 255, 0.95);
+            --card: rgba(255, 255, 255, 0.9);
+            --text: #1e293b;
+        }
+        body:not(.dark-theme) .sidebar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            color: #1e293b;
+        }
+        body:not(.dark-theme) .nav-link {
+            color: #64748b;
+        }
+        body:not(.dark-theme) .nav-link:hover,
+        body:not(.dark-theme) .nav-link.active {
+            color: #1e293b;
+        }
+        body:not(.dark-theme) .liquid-orb {
+            opacity: 0.15;
+        }
+        body:not(.dark-theme) .theme-toggle {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+        }
+        body:not(.dark-theme) .logo-text,
+        body:not(.dark-theme) .section-title {
+            color: #1e293b !important;
+        }
+
+        /* ADMOB AD SPACES */
+        .ad-banner {
+            width: 100%;
+            height: 50px;
+            background: rgba(255, 153, 0, 0.1);
+            border: 1px dashed #ff9900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-size: 11px;
+            color: #ff9900;
+        }
+        .ad-interstitial-trigger {
+            /* Triggers interstitial ad after calculation */
+        }
     </style>
 </head>
 <body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash-screen">
+    <div class="splash-text">chemEFlow</div>
+</div>
+
+<!-- LIQUID BACKGROUND -->
+<div class="liquid-background">
+    <div class="liquid-orb"></div>
+    <div class="liquid-orb"></div>
+    <div class="liquid-orb"></div>
+</div>
+
+<!-- THEME TOGGLE -->
+<div class="theme-toggle">
+    <button onclick="toggleTheme('light')" id="lightBtn">☀️ Light</button>
+    <button onclick="toggleTheme('dark')" id="darkBtn" class="active">🌙 Dark</button>
+</div>
+
 
 <div class="loading-spinner" id="loadingSpinner"></div>
 
@@ -1881,6 +2082,171 @@ window.addEventListener('load', () => {
     console.log('%cChemEFlow v6.0 PRO Loaded ✓', 'color: #00d1b2; font-size: 20px; font-weight: bold;');
     console.log('%c90+ Calculators Active Across All Engineering Disciplines!', 'color: #3b82f6; font-size: 14px;');
 });
+
+// THEME TOGGLE FUNCTION
+function toggleTheme(mode) {
+    const body = document.body;
+    const lightBtn = document.getElementById('lightBtn');
+    const darkBtn = document.getElementById('darkBtn');
+    
+    if(mode === 'dark') {
+        body.classList.add('dark-theme');
+        darkBtn.classList.add('active');
+        lightBtn.classList.remove('active');
+        localStorage.setItem('themeMode', 'dark');
+    } else {
+        body.classList.remove('dark-theme');
+        lightBtn.classList.add('active');
+        darkBtn.classList.remove('active');
+        localStorage.setItem('themeMode', 'light');
+    }
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('themeMode') || 'dark';
+toggleTheme(savedTheme);
+
+
+// PWA INSTALLATION PROMPT
+let deferredPrompt;
+const installBtn = document.createElement('button');
+installBtn.innerHTML = '📱 Install App';
+installBtn.style.cssText = `
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #00f0ff 0%, #0080ff 100%);
+    color: #0a0e1a;
+    border: none;
+    border-radius: 50px;
+    font-weight: 800;
+    cursor: pointer;
+    display: none;
+    z-index: 9999;
+    box-shadow: 0 4px 20px rgba(0, 240, 255, 0.4);
+    animation: pulse-install 2s infinite;
+`;
+
+document.body.appendChild(installBtn);
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block';
+});
+
+installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            console.log('PWA installed');
+            installBtn.style.display = 'none';
+        }
+        deferredPrompt = null;
+    }
+});
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+            .then(reg => console.log('Service Worker registered'))
+            .catch(err => console.log('Service Worker registration failed'));
+    });
+}
+
+// GOOGLE ADMOB INTEGRATION (Add your Ad Unit IDs)
+// Step 1: Sign up at https://admob.google.com
+// Step 2: Create ad units and get IDs
+// Step 3: Replace 'YOUR_AD_UNIT_ID' below with your actual IDs
+
+/*
+// BANNER AD EXAMPLE (Uncomment after getting Ad Unit ID)
+function loadBannerAd() {
+    const adScript = document.createElement('script');
+    adScript.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+    adScript.setAttribute('data-ad-client', 'ca-pub-YOUR_PUBLISHER_ID');
+    adScript.async = true;
+    document.head.appendChild(adScript);
+    
+    // Insert ad after each calculator result
+    const adHTML = `
+        <ins class="adsbygoogle ad-banner"
+             data-ad-client="ca-pub-YOUR_PUBLISHER_ID"
+             data-ad-slot="YOUR_AD_SLOT_ID"
+             data-ad-format="auto"></ins>
+    `;
+    
+    // Show ad after calculation
+    document.querySelectorAll('.result-box').forEach(result => {
+        if (result.style.display !== 'none') {
+            const adContainer = document.createElement('div');
+            adContainer.innerHTML = adHTML;
+            result.parentNode.insertBefore(adContainer, result.nextSibling);
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        }
+    });
+}
+
+// INTERSTITIAL AD (Full screen ad every 3 calculations)
+let calculationCount = 0;
+function showInterstitialAd() {
+    calculationCount++;
+    if (calculationCount % 3 === 0) {
+        // Show interstitial ad
+        // AdMob will handle this automatically when integrated
+        console.log('Interstitial ad would show here');
+    }
+}
+
+// Call this in your calculate() function
+// Add: showInterstitialAd(); after line that shows results
+*/
+
+// MONETIZATION TRACKING
+let userClicks = 0;
+let adImpressions = 0;
+let amazonClicks = 0;
+
+document.addEventListener('click', (e) => {
+    userClicks++;
+    
+    // Track Amazon affiliate clicks
+    if (e.target.classList.contains('amazon-link')) {
+        amazonClicks++;
+        console.log('Amazon click:', amazonClicks);
+        // Send to analytics
+    }
+    
+    // Track ad clicks (AdMob handles payment automatically)
+    if (e.target.classList.contains('adsbygoogle')) {
+        adImpressions++;
+        console.log('Ad click! You earn money from this.');
+    }
+});
+
+// ANALYTICS DASHBOARD (shows your earnings potential)
+function showMonetizationStats() {
+    console.log('=== MONETIZATION STATS ===');
+    console.log('Total user interactions:', userClicks);
+    console.log('Amazon clicks:', amazonClicks, '(~4% commission on sales)');
+    console.log('Ad impressions:', adImpressions, '(~$0.50-$5 per 1000 views)');
+    console.log('========================');
+}
+
+// Show stats every 5 minutes
+setInterval(showMonetizationStats, 300000);
+
+console.log('%c💰 MONETIZATION READY!', 'color: #00ff00; font-size: 16px; font-weight: bold;');
+console.log('%cTo activate ads:', 'font-size: 14px;');
+console.log('1. Sign up: https://admob.google.com');
+console.log('2. Add your Publisher ID to the code above');
+console.log('3. Uncomment the ad functions');
+console.log('4. Deploy to a web server');
+console.log('%cAmazon affiliate links are already active!', 'color: #ff9900; font-weight: bold;');
+
 </script>
 
 </body>

@@ -1,0 +1,41 @@
+{
+  "name": "chemEFlow - Engineering Calculators",
+  "short_name": "chemEFlow",
+  "description": "Next-Gen Engineering Platform with 90+ Professional Calculators",
+  "start_url": "./chemEFlow_PWA.html",
+  "display": "standalone",
+  "background_color": "#0a0e1a",
+  "theme_color": "#00f0ff",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3CradialGradient id='glow' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' style='stop-color:%2300f0ff;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%23a000ff;stop-opacity:0.5'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='256' cy='256' r='240' fill='url(%23glow)'/%3E%3Cpath d='M 256 100 Q 200 150 220 200 T 256 280 Q 312 340 256 400 Q 200 340 256 280 T 292 200 Q 312 150 256 100 Z' fill='%2300f0ff' stroke='%23ffffff' stroke-width='4' opacity='0.9'/%3E%3Ccircle cx='256' cy='180' r='25' fill='%2300f0ff'/%3E%3Ccircle cx='230' cy='250' r='20' fill='%230080ff'/%3E%3Ccircle cx='282' cy='250' r='20' fill='%23a000ff'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg viewBox='0 0 192 192' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3CradialGradient id='glow' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' style='stop-color:%2300f0ff;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%23a000ff;stop-opacity:0.5'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='96' cy='96' r='90' fill='url(%23glow)'/%3E%3Cpath d='M 96 40 Q 75 56 82 75 T 96 105 Q 117 127 96 150 Q 75 127 96 105 T 110 75 Q 117 56 96 40 Z' fill='%2300f0ff' stroke='%23ffffff' stroke-width='2' opacity='0.9'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["productivity", "education", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Reynolds Calculator",
+      "short_name": "Reynolds",
+      "description": "Calculate Reynolds Number",
+      "url": "./chemEFlow_PWA.html?calc=reynolds",
+      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ccircle cx='48' cy='48' r='40' fill='%2300f0ff'/%3E%3C/svg%3E", "sizes": "96x96" }]
+    },
+    {
+      "name": "Pressure Drop",
+      "short_name": "Pressure",
+      "description": "Calculate Pressure Drop",
+      "url": "./chemEFlow_PWA.html?calc=pressure",
+      "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ccircle cx='48' cy='48' r='40' fill='%230080ff'/%3E%3C/svg%3E", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false
+}
