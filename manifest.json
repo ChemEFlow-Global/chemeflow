@@ -10,13 +10,13 @@
   "icons": [
     {
       "src":"logo.png",
-      "sizes": "512x512",
+      "sizes": "987x897",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
       "src":"logo.png",
-      "sizes": "192x192",
+      "sizes": "987x897",
       "type": "image/png"
     }
   ],
@@ -26,15 +26,15 @@
       "name": "Reynolds Calculator",
       "short_name": "Reynolds",
       "description": "Calculate Reynolds Number",
-      "url": "./chemEFlow_PWA.html?calc=reynolds",
-      "icons": [{ "src": "logo.png", "sizes": "192x192", "type": "image/png" }]
+      "url": "index.html?calc=reynolds",
+      "icons": [{ "src": "logo.png", "sizes": "987x897", "type": "image/png" }]
     },
     {
       "name": "Pressure Drop",
       "short_name": "Pressure",
       "description": "Calculate Pressure Drop",
-      "url": "./chemEFlow_PWA.html?calc=pressure",
-      "icons": [{ "src":"logo.png", "sizes": "192x192", "type": "image/png" }]
+      "url": "index.html?calc=pressure",
+      "icons": [{ "src":"logo.png", "sizes": "987x897", "type": "image/png" }]
     }
   ],
   "prefer_related_applications": false
