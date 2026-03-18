@@ -3538,9 +3538,27 @@ function shareCalc(title) {
 
 function copyShareLink() {
     const link = document.getElementById('shareLink');
-    link.select();
-    document.execCommand('copy');
-    showToast('Link copied to clipboard!');
+    const text = link.value;
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('Link copied to clipboard!');
+        }).catch(() => {
+            _fallbackCopy(link);
+        });
+    } else {
+        _fallbackCopy(link);
+    }
+}
+
+function _fallbackCopy(inputEl) {
+    inputEl.select();
+    inputEl.setSelectionRange(0, 99999);
+    try {
+        document.execCommand('copy');
+        showToast('Link copied to clipboard!');
+    } catch(e) {
+        showToast('Copy failed — please copy manually');
+    }
 }
 
 // Keyboard Shortcuts
