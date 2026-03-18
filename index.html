@@ -54,16 +54,19 @@
     <!-- ═══ GOOGLE ADSENSE ═══ -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6614782948942508" crossorigin="anonymous"></script>
 
-    <!-- Scripts deferred — eliminates render-blocking (saves ~4200ms) -->
+    <!-- Scripts deferred — eliminates render-blocking -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script defer src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
-    
-    <!-- Preconnect for faster font loading -->
+
+    <!-- Preconnects -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500&family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <!-- Non-render-blocking font load -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500&family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500&family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap"></noscript>
 
     <style>
 
@@ -120,7 +123,7 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             font-weight: 300;
             background: var(--void);
             color: var(--text);
@@ -169,8 +172,8 @@
         @keyframes scanin { from { clip-path: inset(0 0 100% 0); opacity: 0; } to { clip-path: inset(0 0 0% 0); opacity: 1; } }
         @keyframes flicker { 0%, 90%, 100% { opacity: 1; } 91%, 99% { opacity: 0.85; } }
         @keyframes text-appear { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        @keyframes splash-bar { from { width: 0; } to { width: 100%; } }
-        @keyframes splash-fadeout { to { opacity: 0; pointer-events: none; visibility: hidden; } }
+
+
 
         /* ── LOADING SPINNER ── */
         .loading-spinner {
@@ -829,7 +832,7 @@
         }
 
         @media print {
-            .sidebar, .btn-group, .amazon-link, #splash-screen { display: none !important; }
+            .sidebar, .btn-group, .amazon-link, 
             .main-content { padding: 0; }
             .calc-card, .card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
         }
@@ -868,6 +871,9 @@
             opacity: 0.09;
         }
 
+        @keyframes splash-bar { from { width: 0; } to { width: 100%; } }
+        @keyframes splash-fadeout { to { opacity: 0; pointer-events: none; visibility: hidden; } }
+
         /* ══════════════════════════════════════
            SPLASH SCREEN — TACTICAL INIT
         ══════════════════════════════════════ */
@@ -878,7 +884,7 @@
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             gap: 0;
-            animation: splash-fadeout 0.6s ease 3.2s forwards;
+            animation: splash-fadeout 0.6s ease 2.5s forwards;
         }
         #splash-screen::before {
             content: '';
@@ -936,7 +942,7 @@
         .splash-bar-fill {
             position: absolute; inset: 0;
             background: linear-gradient(90deg, var(--plasma), var(--bio));
-            animation: splash-bar 2s ease 1s both;
+            animation: splash-bar 1.8s ease 0.2s both;
         }
         .splash-status {
             font-family: 'IBM Plex Mono', monospace;
@@ -1342,10 +1348,10 @@
 <div class="hud-scanlines"></div>
 <div class="hud-noise"></div>
 
+
 <!-- SPLASH SCREEN -->
 <div id="splash-screen">
     <div class="splash-logo-ring">
-        <!-- ChemEFlow Tactical Logo v7 — Splash -->
         <svg width="90" height="90" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <linearGradient id="sp_g1" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -1372,7 +1378,7 @@
     <div class="splash-text">Chem<span>E</span>Flow</div>
     <div class="splash-tagline">Engineering Intelligence Platform</div>
     <div class="splash-bar-wrap"><div class="splash-bar-fill"></div></div>
-    <div class="splash-status">INITIALIZING 90+ MODULES...</div>
+    <div class="splash-status">INITIALIZING 100+ MODULES...</div>
 </div>
 
 <!-- PLASMA NEBULA BACKGROUND -->
@@ -3307,15 +3313,11 @@ function renderLineChart(canvasId, label, labels, data, unit, color='#00c4ff') {
         data: {
             labels,
             datasets: [{
-                label,
-                data,
+                label, data,
                 borderColor: color,
-                backgroundColor: color.replace(')', ',0.08)').replace('rgb','rgba').replace('#00c4ff','rgba(0,196,255,0.08)').replace('#00ffb3','rgba(0,255,179,0.08)'),
-                borderWidth: 2,
-                pointBackgroundColor: color,
-                pointRadius: 3,
-                tension: 0.4,
-                fill: true
+                backgroundColor: color === '#00c4ff' ? 'rgba(0,196,255,0.08)' : 'rgba(0,255,179,0.08)',
+                borderWidth: 2, pointBackgroundColor: color,
+                pointRadius: 3, tension: 0.4, fill: true
             }]
         },
         options: {
@@ -3338,12 +3340,9 @@ function renderBarChart(canvasId, label, labels, data, unit, color='#00c4ff') {
         data: {
             labels,
             datasets: [{
-                label,
-                data,
+                label, data,
                 backgroundColor: labels.map((_,i) => i===0 ? `${color}cc` : `${color}55`),
-                borderColor: color,
-                borderWidth: 1,
-                borderRadius: 3
+                borderColor: color, borderWidth: 1, borderRadius: 3
             }]
         },
         options: {
@@ -3505,7 +3504,7 @@ function exportCalcPDF(title, resultId) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     doc.setFontSize(20);
-    doc.setTextColor(0, 209, 178);
+    doc.setTextColor(0, 196, 255);
     doc.text('ChemEFlow Calculation Report', 20, 20);
     doc.setFontSize(16);
     doc.setTextColor(0, 0, 0);
