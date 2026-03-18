@@ -1,0 +1,21 @@
+# Netlify _headers file — cache control for performance
+/icon-*.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/favicon.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+/og-image.svg
+  Cache-Control: public, max-age=86400
+
+/manifest.json
+  Cache-Control: public, max-age=86400
+
+/service-worker.js
+  Cache-Control: no-cache
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
